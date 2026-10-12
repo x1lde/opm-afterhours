@@ -1,8 +1,8 @@
 ﻿<!DOCTYPE html>
 <!--
   FILE: index.html
-  PURPOSE: Presents the listening interface with native local video playback.
-  RESPONSIBILITIES: Defines the video, synchronized vinyl, controls, and demo lyrics.
+  PURPOSE: Presents MP3 music playback with independent muted background visuals.
+  RESPONSIBILITIES: Defines audio controls, decorative video, vinyl, and demo lyrics.
   CONNECTED FILES: Loads css/style.css, css/responsive.css, and js/main.js.
 -->
 <html lang="en">
@@ -41,6 +41,8 @@
     </header>
 
     <main id="main-content" class="page-shell" tabindex="-1">
+      <!-- Only this audio element supplies music, time, volume, vinyl, and lyrics. -->
+      <audio id="music-audio" preload="metadata" hidden></audio>
       <div class="page-introduction">
         <div>
           <h1 class="eyebrow">a home for filipino music</h1>
@@ -49,43 +51,40 @@
         <p id="prototype-notice" class="prototype-note"><span class="status-dot" aria-hidden="true"></span>Single-track demo · navigation, search &amp; favorites unavailable</p>
       </div>
 
-      <!-- Music player: native controls include the browser's fullscreen action. -->
+      <!-- Decorative video: muted and looping, never synchronized with the MP3. -->
       <section class="listening-layout" aria-label="Featured listening experience">
         <section class="video-region" aria-labelledby="video-heading">
           <div class="section-heading">
             <h2 id="video-heading" class="eyebrow">Music video</h2>
-            <span class="small-note">Demo selection</span>
+            <span class="small-note">Muted · independent</span>
           </div>
           <div class="video-frame">
-            <video id="music-video" controls preload="metadata" playsinline aria-label="Multo by Cup of Joe music video" aria-describedby="player-status">
-              Your browser does not support HTML5 video.
-            </video>
+            <img id="background-fallback" class="video-fallback" src="assets/covers/multo.jpg" alt="" aria-hidden="true">
+            <video id="background-video" muted loop preload="metadata" playsinline tabindex="-1" aria-hidden="true" hidden></video>
           </div>
           <div class="video-caption">
             <span class="caption-marker" aria-hidden="true">MV</span>
-            <div><h3>Multo <span>— Cup of Joe</span></h3><p id="player-status" role="status" aria-live="polite">Loading local video…</p></div>
+            <div><h3>Multo <span>— Cup of Joe</span></h3><p id="player-status" role="status" aria-live="polite">Loading MP3 music…</p></div>
           </div>
-          <p class="video-footnote">A little space for the songs that stay with you.</p>
-          <noscript><p class="small-note">Enable JavaScript to load the configured local video and connect the playback controls.</p></noscript>
+          <p id="background-status" class="video-footnote">Preparing muted visuals…</p>
+          <noscript><p class="small-note">Enable JavaScript to load the MP3 and independent background video.</p></noscript>
         </section>
 
-        <!-- Lyrics: five original demo lines; the active appearance is static. -->
+        <!-- Lyrics: original demo text with sample timings, not Multo's lyrics. -->
         <section class="lyrics-region" aria-labelledby="lyrics-heading" aria-describedby="lyrics-note">
           <div class="section-heading">
             <h2 id="lyrics-heading" class="serif-heading">Lyrics</h2>
-            <span class="small-note">Demo verse</span>
+            <span class="small-note">Demo timings</span>
           </div>
-          <p id="lyrics-note" class="lyrics-note">Original placeholder lines · not from Multo</p>
-          <div class="lyrics-scroll" tabindex="0" role="region" aria-label="Scrollable original demo lyrics">
-            <ol class="lyric-lines" lang="fil">
-              <li>Sa tahimik na daan</li>
-              <li>May himig ang mga ilaw</li>
-              <li class="is-active"><span class="visually-hidden">Highlighted demo line: </span>Dito muna tayo,<br>sa pagitan ng gabi</li>
-              <li>Habang gising pa ang buwan</li>
-              <li>May awit pang naghihintay</li>
-            </ol>
+          <p id="lyrics-note" class="lyrics-note">Original demo text · not Multo lyrics</p>
+          <div id="lyrics-scroll" class="lyrics-scroll" tabindex="0" role="region" aria-label="Scrollable synchronized demo lyrics">
+            <ol id="lyric-lines" class="lyric-lines" lang="fil"></ol>
+            <p id="lyrics-fallback" class="lyrics-fallback small-note" hidden>Lyrics unavailable</p>
           </div>
-          <p class="small-note lyrics-bottom-note">Static preview · synchronization coming later</p>
+          <div class="lyrics-toolbar">
+            <button id="follow-lyrics" class="follow-lyrics" type="button" aria-pressed="true" aria-controls="lyrics-scroll" aria-describedby="lyrics-follow-status">Follow lyrics</button>
+            <span id="lyrics-follow-status" class="small-note">Following</span>
+          </div>
         </section>
 
         <!-- Vinyl record: the label and supplied cover rotate with the grooves. -->
@@ -105,7 +104,7 @@
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
             </button>
           </div>
-          <!-- Playback controls: enabled after the local video metadata loads. -->
+          <!-- Music controls: connected only to the MP3 audio element. -->
           <div class="playback-controls">
             <label class="visually-hidden" for="playback-progress">Playback position</label>
             <input id="playback-progress" class="range-input progress-input" type="range" min="0" max="100" value="0" step="0.1" disabled aria-describedby="player-status">
@@ -153,6 +152,6 @@
     </main>
 
     <!-- Footer -->
-    <footer class="site-footer"><span>OPM Afterhours</span><p>A school project, made for the love of Filipino music.</p><span class="small-note">Local video playback · Step 3</span></footer>
+    <footer class="site-footer"><span>OPM Afterhours</span><p>A school project, made for the love of Filipino music.</p><span class="small-note">Independent audio &amp; visuals · Step 5.5</span></footer>
   </body>
 </html>

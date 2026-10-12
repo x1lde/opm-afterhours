@@ -1,12 +1,13 @@
-﻿/**
+/**
  * FILE: player.js
- * PURPOSE: Controls the existing HTML5 video element and custom playback UI.
+ * PURPOSE: Uses the MP3 audio element as the sole source of music playback.
  * RESPONSIBILITIES: Loads one local track, reads media events and metadata,
  * connects play/pause, seeking, and volume, explains media failures, and
  * publishes playback snapshots for independent UI components.
  * CONNECTED FILES: main.js supplies demoSong from data.js. index.html supplies
- * the video and controls; CSS preserves the approved layout. Future vinyl and
- * lyrics features can read or subscribe to state without a second controller.
+ * the audio and controls; main.js uses snapshots for vinyl motion and lyrics.js
+ * uses audio time for lyrics. The separate background video never changes
+ * music state, time, or volume.
  */
 
 const LOAD_TIMEOUT_MS = 15000;
@@ -14,18 +15,18 @@ const BUFFER_TIMEOUT_MS = 20000;
 const PLAY_ICON = 'm9 5 11 7-11 7z';
 const PAUSE_ICON = 'M7 5h4v14H7zM14 5h4v14h-4z';
 
-let video = null;
+let audio = null;
 let ui = null;
 let initializationPromise = null;
 let finishLoading = null;
 let loadingTimer = null;
 let bufferingTimer = null;
 let previewingSeek = false;
-let message = 'Loading local video…';
+let message = 'Loading local audio…';
 const playbackSubscribers = new Set();
 
 // All playback information lives here. Volume uses 0–100 for the UI, while
-// HTMLVideoElement.volume uses 0–1. Unknown or infinite duration is represented by 0.
+// HTMLAudioElement.volume uses 0–1. Unknown or infinite duration is represented by 0.
 const playbackState = {
   trackId: null,
   status: 'unstarted',
@@ -53,7 +54,7 @@ export function getPlaybackState() {
     // after a seek, with no pause, buffering, seeking, or error in progress.
     isActivelyPlaying: playbackState.isActivelyPlaying && playbackState.ready
       && !playbackState.seeking && !playbackState.buffering && !playbackState.error
-      && !!video && !video.paused && !video.ended,
+      && !!audio && !audio.paused && !audio.ended,
     selectedSong: playbackState.selectedSong ? { ...playbackState.selectedSong } : null,
   };
 }
@@ -75,12 +76,12 @@ function notifyPlaybackSubscribers() {
 }
 
 /**
- * Initializes the existing video once; repeated calls reuse the same promise.
- * @param {{id: string, title: string, artist: string, videoSrc: string, posterSrc?: string}} song Local track configuration.
+ * Initializes the existing audio once; repeated calls reuse the same promise.
+ * @param {{id: string, title: string, artist: string, audioSrc: string}} song Local track configuration.
  * @returns {Promise<object>} State after metadata loads or an error is reported.
  */
 export function initializePlayer(song) {
-  if (!initializationPromise) initializationPromise = loadLocalVideo(song);
+  if (!initializationPromise) initializationPromise = loadLocalAudio(song);
   return initializationPromise;
 }
 
@@ -89,8 +90,8 @@ export function initializePlayer(song) {
  * @param {object} song Track data from data.js; duration is not part of the data.
  * @returns {Promise<object>} Initial playback snapshot, including any failure.
  */
-async function loadLocalVideo(song) {
-  video = document.getElementById('music-video');
+async function loadLocalAudio(song) {
+  audio = document.getElementById('music-audio');
   ui = {
     playButton: document.getElementById('play-pause'),
     playIcon: document.getElementById('play-pause-icon'),
@@ -104,34 +105,29 @@ async function loadLocalVideo(song) {
   playbackState.trackId = song.id;
   playbackState.selectedSong = { ...song };
   playbackState.status = 'loading';
-  bindVideoEvents();
+  bindAudioEvents();
   bindControls();
-  video.volume = playbackState.volume / 100;
+  audio.volume = playbackState.volume / 100;
   renderControls();
 
-  // HEAD checks availability without downloading the MP4 twice. A missing file
+  // HEAD checks availability without downloading the MP3 twice. A missing file
   // gets a precise path message instead of the browser's ambiguous codec error.
   const requestController = new AbortController();
   const requestTimeout = setTimeout(() => requestController.abort(), LOAD_TIMEOUT_MS);
   try {
-    if (!song.id || !song.videoSrc) throw new Error('Configure the track ID and videoSrc in js/data.js.');
-    const response = await fetch(song.videoSrc, { method: 'HEAD', signal: requestController.signal });
+    if (!song.id || !song.audioSrc) throw new Error('Configure the track ID and audioSrc in js/data.js.');
+    const response = await fetch(song.audioSrc, { method: 'HEAD', signal: requestController.signal });
     if (response.status === 404) {
-      throw new Error(`Video file missing. Add an authorized MP4 at ${song.videoSrc}, then reload.`);
+      throw new Error(`Audio file missing. Add an authorized MP3 at ${song.audioSrc}, then reload.`);
     }
-    // Some static servers do not support HEAD; allow the video to try loading.
+    // Some static servers do not support HEAD; allow the audio to try loading.
     if (!response.ok && ![405, 501].includes(response.status)) {
-      throw new Error('The video file could not be opened. Check its permissions and restart Live Server.');
-    }
-    // A poster is optional. Only attach it when a configured local asset exists.
-    if (song.posterSrc) {
-      const poster = await fetch(song.posterSrc, { method: 'HEAD', signal: requestController.signal }).catch(() => null);
-      if (poster?.ok) video.poster = song.posterSrc;
+      throw new Error('The audio file could not be opened. Check its permissions and restart Live Server.');
     }
   } catch (error) {
     showError(error.name === 'AbortError'
-      ? 'Loading timed out. Check that Live Server is running and the video file is accessible, then reload.'
-      : error.message || 'The local video could not load. Check Live Server and reload.');
+      ? 'Loading timed out. Check that Live Server is running and the audio file is accessible, then reload.'
+      : error.message || 'The local audio could not load. Check Live Server and reload.');
     return getPlaybackState();
   } finally {
     clearTimeout(requestTimeout);
@@ -144,39 +140,39 @@ async function loadLocalVideo(song) {
       resolve(getPlaybackState());
     };
     loadingTimer = setTimeout(() => {
-      showError('Video metadata did not load. Check the MP4 format and file, then reload.');
+      showError('Audio metadata did not load. Check the MP3 format and file, then reload.');
     }, LOAD_TIMEOUT_MS);
     try {
-      video.src = song.videoSrc;
-      video.load();
+      audio.src = song.audioSrc;
+      audio.load();
     } catch {
-      showError('The video could not initialize. Check its path and reload the page.');
+      showError('The audio could not initialize. Check its path and reload the page.');
     }
   });
 }
 
 /** Attaches each media listener once; there are no polling loops or new players. */
-function bindVideoEvents() {
+function bindAudioEvents() {
   const events = [
     'loadedmetadata', 'durationchange', 'play', 'playing', 'pause', 'waiting',
     'timeupdate', 'seeking', 'seeked', 'ended', 'volumechange', 'error', 'stalled',
   ];
-  for (const eventName of events) video.addEventListener(eventName, handleVideoEvent);
+  for (const eventName of events) audio.addEventListener(eventName, handleAudioEvent);
 }
 
 /**
- * Reads native events, including actions performed through the video's controls.
- * @param {Event} event A media event from the single HTMLVideoElement.
+ * Reads native audio events; background-video events never enter this handler.
+ * @param {Event} event A media event from the single HTMLAudioElement.
  */
-function handleVideoEvent(event) {
+function handleAudioEvent(event) {
   if (event.type === 'error') {
     const errors = {
-      1: 'Video loading was interrupted. Reload the page to try again.',
-      2: 'The video connection failed. Check Live Server and reload.',
-      3: 'The video could not be decoded. Replace the corrupted file with a compatible MP4.',
-      4: 'This media format is unsupported. Use an MP4 with H.264 video and AAC audio.',
+      1: 'Audio loading was interrupted. Reload the page to try again.',
+      2: 'The audio connection failed. Check Live Server and reload.',
+      3: 'The audio could not be decoded. Replace the corrupted file with a compatible MP3.',
+      4: 'This media format is unsupported. Use a compatible MP3 audio file.',
     };
-    showError(errors[video.error?.code] || 'The video is unavailable. Check the file path and MP4 format.');
+    showError(errors[audio.error?.code] || 'The audio is unavailable. Check the file path and MP3 format.');
     return;
   }
   const previousTime = playbackState.currentTime;
@@ -205,7 +201,7 @@ function handleVideoEvent(event) {
       playbackState.status = 'playing';
       playbackState.buffering = false;
       playbackState.error = null;
-      message = 'Playing · local video';
+      message = 'Playing · local audio';
       clearBufferTimeout();
       break;
     case 'pause':
@@ -214,17 +210,17 @@ function handleVideoEvent(event) {
       clearBufferTimeout();
       if (!playbackState.error || playbackState.ready) {
         playbackState.error = null;
-        playbackState.status = video.ended ? 'ended' : 'paused';
-        message = video.ended ? 'Video ended · press Play to replay' : 'Paused';
+        playbackState.status = audio.ended ? 'ended' : 'paused';
+        message = audio.ended ? 'Audio ended · press Play to replay' : 'Paused';
       }
       break;
     case 'waiting':
     case 'stalled':
       playbackState.isActivelyPlaying = false;
-      if (!video.paused && !playbackState.error) {
+      if (!audio.paused && !playbackState.error) {
         playbackState.status = 'buffering';
         playbackState.buffering = true;
-        message = 'Buffering · waiting for video data';
+        message = 'Buffering · waiting for audio data';
         beginBufferTimeout();
       }
       break;
@@ -240,11 +236,11 @@ function handleVideoEvent(event) {
     case 'seeked':
       playbackState.isActivelyPlaying = false;
       playbackState.seeking = false;
-      playbackState.buffering = !video.paused && video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA;
+      playbackState.buffering = !audio.paused && audio.readyState < HTMLMediaElement.HAVE_FUTURE_DATA;
       clearBufferTimeout();
       if (!playbackState.error) {
-        playbackState.status = video.ended ? 'ended' : video.paused ? 'paused' : playbackState.buffering ? 'buffering' : 'playing';
-        message = playbackState.buffering ? 'Buffering · waiting for video data' : video.paused ? 'Paused' : 'Playing · local video';
+        playbackState.status = audio.ended ? 'ended' : audio.paused ? 'paused' : playbackState.buffering ? 'buffering' : 'playing';
+        message = playbackState.buffering ? 'Buffering · waiting for audio data' : audio.paused ? 'Paused' : 'Playing · local audio';
         if (playbackState.buffering) beginBufferTimeout();
       }
       break;
@@ -252,8 +248,8 @@ function handleVideoEvent(event) {
       // Some browsers resume after seeking without another playing event.
       // Actual forward progress confirms recovery; the seek jump alone does not.
       if (playbackState.status === 'playing' && playbackState.currentTime > previousTime
-          && !video.paused && !video.seeking && !playbackState.buffering
-          && video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          && !audio.paused && !audio.seeking && !playbackState.buffering
+          && audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
         playbackState.isActivelyPlaying = true;
       }
       break;
@@ -262,7 +258,7 @@ function handleVideoEvent(event) {
       playbackState.status = 'ended';
       playbackState.buffering = false;
       playbackState.seeking = false;
-      message = 'Video ended · press Play to replay';
+      message = 'Audio ended · press Play to replay';
       clearBufferTimeout();
       break;
   }
@@ -283,8 +279,8 @@ function bindControls() {
   });
   ui.volume.addEventListener('input', () => {
     if (!playbackState.ready) return;
-    video.volume = Math.min(1, Math.max(0, Number(ui.volume.value) / 100));
-    if (video.volume > 0) video.muted = false;
+    audio.volume = Math.min(1, Math.max(0, Number(ui.volume.value) / 100));
+    if (audio.volume > 0) audio.muted = false;
     // volumechange will read the actual result and synchronize the UI.
   });
 }
@@ -292,20 +288,20 @@ function bindControls() {
 /** Sends play/pause from a user click and handles a rejected play() promise. */
 async function togglePlayback() {
   if (!playbackState.ready) return;
-  if (!video.paused && !video.ended) {
-    video.pause();
+  if (!audio.paused && !audio.ended) {
+    audio.pause();
     return;
   }
   try {
-    await video.play();
+    await audio.play();
   } catch (error) {
-    if (error.name === 'AbortError' && video.paused) return;
+    if (error.name === 'AbortError' && audio.paused) return;
     if (error.name === 'NotAllowedError') {
-      showError('Your browser blocked playback. Press Play in the video or try again.', false);
+      showError('Your browser blocked playback. Press Play to try again, and check browser playback permissions.', false);
     } else if (error.name === 'NotSupportedError') {
-      showError('This media format is unsupported. Use an MP4 with H.264 video and AAC audio.');
+      showError('This media format is unsupported. Use a compatible MP3 audio file.');
     } else {
-      showError('Playback failed. Try the native video controls or reload the page.', false);
+      showError('Playback failed. Try Play again or reload the page.', false);
     }
   }
 }
@@ -315,26 +311,26 @@ function seekFromControl() {
   previewingSeek = false;
   if (!playbackState.ready || playbackState.duration <= 0) return;
   try {
-    video.currentTime = Math.min(playbackState.duration, Math.max(0, Number(ui.progress.value)));
+    audio.currentTime = Math.min(playbackState.duration, Math.max(0, Number(ui.progress.value)));
     readMediaValues();
     renderControls();
   } catch {
-    showError('Seeking is unavailable. Try the progress bar inside the video.', false);
+    showError('Seeking is unavailable. Reload the page to try again.', false);
   }
 }
 
-/** Reads time, finite duration, volume, mute, and seeking directly from the video. */
+/** Reads time, finite duration, volume, mute, and seeking directly from the audio. */
 function readMediaValues() {
-  playbackState.currentTime = Number.isFinite(video.currentTime) ? Math.max(0, video.currentTime) : 0;
-  playbackState.duration = Number.isFinite(video.duration) ? Math.max(0, video.duration) : 0;
-  playbackState.volume = Math.round(video.volume * 100);
-  playbackState.muted = video.muted;
-  playbackState.seeking = video.seeking;
+  playbackState.currentTime = Number.isFinite(audio.currentTime) ? Math.max(0, audio.currentTime) : 0;
+  playbackState.duration = Number.isFinite(audio.duration) ? Math.max(0, audio.duration) : 0;
+  playbackState.volume = Math.round(audio.volume * 100);
+  playbackState.muted = audio.muted;
+  playbackState.seeking = audio.seeking;
 }
 
 /** Updates playback controls and notifies components without styling them here. */
 function renderControls() {
-  const playing = !video.paused && !video.ended && playbackState.ready;
+  const playing = !audio.paused && !audio.ended && playbackState.ready;
   ui.playButton.disabled = !playbackState.ready;
   ui.volume.disabled = !playbackState.ready;
   ui.progress.disabled = !playbackState.ready || playbackState.duration <= 0;
@@ -361,7 +357,7 @@ function beginBufferTimeout() {
   if (bufferingTimer) return;
   bufferingTimer = setTimeout(() => {
     bufferingTimer = null;
-    message = 'Video data is taking longer than expected. Check Live Server or reload the page.';
+    message = 'Audio data is taking longer than expected. Check Live Server or reload the page.';
     renderControls();
   }, BUFFER_TIMEOUT_MS);
 }
@@ -373,17 +369,20 @@ function clearBufferTimeout() {
 }
 
 /**
- * Reports a media failure below the video without covering it.
+ * Reports a media failure below the audio without covering it.
  * @param {string} errorMessage A readable explanation and recovery action.
  * @param {boolean} fatal Whether to disable controls (false allows another try).
  */
 function showError(errorMessage, fatal = true) {
   playbackState.isActivelyPlaying = false;
-  playbackState.status = fatal ? 'error' : video.ended ? 'ended' : video.paused ? 'paused' : 'playing';
+  playbackState.status = fatal ? 'error' : audio.ended ? 'ended' : audio.paused ? 'paused' : 'playing';
   playbackState.error = errorMessage;
   playbackState.buffering = false;
   playbackState.seeking = false;
-  if (fatal) playbackState.ready = false;
+  if (fatal) {
+    playbackState.ready = false;
+    audio.pause();
+  }
   previewingSeek = false;
   clearBufferTimeout();
   clearTimeout(loadingTimer);
@@ -394,7 +393,7 @@ function showError(errorMessage, fatal = true) {
 
 /**
  * Formats actual seconds as M:SS or H:MM:SS; accepts unknown time safely.
- * @param {number} seconds Time in seconds from the video or seek preview.
+ * @param {number} seconds Time in seconds from the audio or seek preview.
  * @returns {string} A readable playback clock.
  */
 function formatTime(seconds) {

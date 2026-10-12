@@ -1,15 +1,18 @@
 /**
  * FILE: main.js
  * PURPOSE: Serves as the website's JavaScript ES module entry point.
- * RESPONSIBILITIES: Starts the player, subscribes vinyl motion to state, and
- * displays the supplied cover with a placeholder fallback.
+ * RESPONSIBILITIES: Starts MP3 playback, vinyl/lyrics subscriptions, and an
+ * independent muted video controller. Loads the supplied vinyl cover.
  * CONNECTED FILES: Loaded by index.html; imports demoSong from data.js and
  * initializePlayer and subscribeToPlaybackState from player.js. CSS performs
- * rotation and reduced-motion handling; lyrics remain static in Step 4.
+ * rotation and reduced-motion handling; lyrics.js subscribes only to MP3 state.
+ * background-video.js controls decorative video independently of player.js.
  */
 
 import { demoSong } from './data.js';
 import { initializePlayer, subscribeToPlaybackState } from './player.js';
+import { initializeLyrics, loadLyricsForTrack } from './lyrics.js';
+import { initializeBackgroundVideo } from './background-video.js';
 
 const vinyl = document.getElementById('vinyl-record');
 const vinylArtwork = document.getElementById('vinyl-artwork');
@@ -41,7 +44,11 @@ function updateVinylPlayback(state) {
 // One subscription observes native and custom playback alike. Changing only
 // animation-play-state preserves the record's angle instead of restarting it.
 subscribeToPlaybackState(updateVinylPlayback);
+initializeLyrics();
+loadLyricsForTrack(demoSong.id, demoSong.lyrics);
 
 // Module scripts run after the HTML is parsed. The controller reports failures
 // in the page and resolves initialization without creating an unhandled rejection.
 initializePlayer(demoSong);
+// These controllers never exchange timestamps, seek positions, or play/pause state.
+initializeBackgroundVideo(demoSong);

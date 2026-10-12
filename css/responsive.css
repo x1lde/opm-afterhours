@@ -93,10 +93,7 @@
     margin-bottom: 0.75rem;
   }
   .lyric-lines {
-    gap: 0.5rem;
-  }
-  .lyrics-bottom-note {
-    margin-top: 0.75rem;
+    gap: 1rem;
   }
   .artist-section {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
@@ -215,13 +212,13 @@
     grid-column: auto;
   }
   .lyrics-region {
+    --lyrics-panel-height: 280px;
     border-top: 1px solid var(--color-border);
     padding-top: var(--space-md);
   }
   /* A focusable scroll area keeps long verses usable without expanding the page. */
   .lyrics-scroll {
-    max-height: 280px;
-    padding: var(--space-xs) var(--space-xs) var(--space-xs) 0;
+    padding-right: var(--space-xs);
   }
   .lyric-lines {
     gap: 1rem;
@@ -271,7 +268,7 @@
 }
 
 /* Pause the existing animation for reduced motion, retaining its current angle.
-   This affects decoration only; native video playback remains fully available. */
+   This affects decoration only; MP3 music playback remains fully available. */
 @media (prefers-reduced-motion: reduce) {
   .vinyl, .vinyl.is-playing {
     animation-play-state: paused;

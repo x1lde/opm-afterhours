@@ -2,9 +2,10 @@
  * FILE: style.css
  * PURPOSE: Defines the dark editorial theme and desktop listening interface.
  * RESPONSIBILITIES: Provides design tokens, layout, typography, components,
- * CSS vinyl grooves, and playback-synchronized rotation states.
+ * CSS vinyl grooves, playback rotation states, and synchronized lyric styles.
  * CONNECTED FILES: Loaded by index.html before responsive.css. No assets or
- * external fonts are required; player.js controls the native video element.
+ * external fonts are required. player.js controls audio; background-video.js
+ * independently controls the decorative video.
  */
 
 /* Theme variables */
@@ -34,6 +35,7 @@
   --page-gutter: clamp(1.5rem, 3.4vw, 4rem);
   --vinyl-max-size: 380px;
   --vinyl-rotation-duration: 10s;
+  --lyrics-panel-height: clamp(200px, calc(100svh - 520px), 290px);
 }
 
 /* Global styles */
@@ -263,7 +265,7 @@ svg {
   margin-bottom: var(--space-sm);
 }
 
-/* Music player: surrounding gradient never covers the native video controls. */
+/* Independent background visuals: no controls or interaction over the picture. */
 .video-region {
   padding: var(--space-sm) 0;
   background: radial-gradient(ellipse at 30% 40%, #292027 0%, transparent 72%);
@@ -277,7 +279,7 @@ svg {
   overflow: hidden;
   background: #141215;
 }
-.video-frame video {
+.video-frame video, .video-frame .video-fallback {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -286,6 +288,13 @@ svg {
   border: 0;
   object-fit: contain;
   background: #141215;
+  pointer-events: none;
+}
+.video-frame .video-fallback {
+  object-fit: cover;
+}
+.video-frame [hidden] {
+  display: none;
 }
 .play-button:not(:disabled), .range-input:not(:disabled) {
   cursor: pointer;
@@ -329,7 +338,7 @@ svg {
   font-size: 0.95rem;
 }
 
-/* Lyrics: the emphasized line is a fixed demo state, not timed playback. */
+/* Lyrics: a fixed viewport keeps line-size changes inside the panel. */
 .lyrics-region {
   padding: var(--space-sm) 0;
 }
@@ -342,20 +351,30 @@ svg {
   margin-bottom: var(--space-md);
 }
 .lyrics-scroll {
-  max-height: 410px;
+  position: relative;
+  height: var(--lyrics-panel-height);
   overflow-y: auto;
+  /* Font changes must not trigger the browser's own scroll-anchor adjustments. */
+  overflow-anchor: none;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
   padding-right: 0.7rem;
 }
 .lyric-lines {
   margin: 0;
-  padding: 0;
+  /* Extra space lets even the first and last lines reach the panel center. */
+  padding: calc(var(--lyrics-panel-height) / 2) 0;
   list-style: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 1.1rem;
+}
+.lyric-lines[hidden] {
+  display: none;
+}
+.lyrics-fallback {
+  padding: var(--space-md) 0;
 }
 .lyric-lines li {
   font-size: 18px;
@@ -373,9 +392,28 @@ svg {
   letter-spacing: -0.025em;
   padding: 0.35rem 0;
 }
-.lyrics-bottom-note {
-  margin-top: var(--space-md);
-  font-size: 0.65rem;
+.lyrics-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+.follow-lyrics {
+  min-height: 44px;
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+}
+.follow-lyrics:not(:disabled) {
+  cursor: pointer;
+}
+.follow-lyrics[aria-pressed='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 /* Vinyl appearance: repeating radial bands create grooves without an image. */

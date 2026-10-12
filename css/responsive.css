@@ -41,10 +41,11 @@
     padding: 0.25rem 0 1rem;
   }
   .record-region {
-    max-width: 380px;
+    max-width: var(--vinyl-max-size);
   }
-  .vinyl {
-    width: min(100%, clamp(170px, calc(100svh - 575px), 380px));
+  .vinyl-stage {
+    /* Larger on tall desktops, capped by the actual column and screen height. */
+    width: min(100%, clamp(170px, calc(100svh - 550px), var(--vinyl-max-size)));
     margin-inline: auto;
   }
   .song-summary {
@@ -269,10 +270,11 @@
   }
 }
 
-/* Respect motion preferences when future playback sets the playing class. */
+/* Pause the existing animation for reduced motion, retaining its current angle.
+   This affects decoration only; native video playback remains fully available. */
 @media (prefers-reduced-motion: reduce) {
-  .vinyl {
-    animation: none;
+  .vinyl, .vinyl.is-playing {
+    animation-play-state: paused;
   }
   .lyric-lines li {
     transition: none;

@@ -6,7 +6,7 @@ and a responsive listening interface built from HTML, CSS, and vanilla JavaScrip
 
 ## Current progress
 
-**Steps 1 and 2 are complete. Step 3 now uses native HTML5 video playback.**
+**Steps 1–4 are complete. Playback now synchronizes the CSS vinyl animation.**
 The configured track is Multo by Cup of Joe, played from a local MP4. The custom
 play/pause button, progress slider, timestamps, and volume work with the same
 video as the native browser controls. There is no autoplay or default looping.
@@ -15,14 +15,15 @@ The previous YouTube integration was removed because embedding was blocked in
 both automated and local testing. The revised player has no third-party API,
 video IDs, iframe, global ready callback, or external media dependency.
 
-Lyrics and vinyl remain static. Artist biography, genres, cover artwork, and the
-other two song cards are clearly labeled demo placeholders. The selected song's
+Lyrics remain static. The vinyl uses the supplied local `multo.jpg` cover and
+rotates only while video playback is active. Artist biography, genres, and the
+other two song cards remain demo placeholders. The selected song's
 duration is read from the MP4, never hardcoded. Each next milestone requires approval.
 
 ## Technologies
 
 - **HTML5:** Semantic page structure and one native `<video>` element.
-- **CSS3:** Theme, responsive layout, components, and the stationary CSS vinyl.
+- **CSS3:** Theme, responsive layout, components, and playback-synchronized vinyl.
 - **Vanilla JavaScript (ES6+):** Native ES modules and browser media events.
 
 No frameworks, packages, build tools, Node.js, npm, backend, or database are
@@ -46,6 +47,7 @@ opm-afterhours/
 └── assets/
     ├── artists/
     ├── covers/
+    │   └── multo.jpg
     └── videos/
         ├── multo.mp4
         └── Multo - Cup of Joe (Official Music Video).mp4
@@ -55,7 +57,8 @@ The supplied original MP4 was preserved. A copy named `multo.mp4` provides the
 requested configuration path; only that copy is loaded by the website.
 The existing `.git/` folder contains version-control metadata. The ignored
 `.playwright-mcp/` folder contains verification artifacts, not website assets.
-The artist and cover folders are currently empty.
+The artist folder remains empty. The developer supplied `assets/covers/multo.jpg`;
+no cover artwork was downloaded or generated.
 
 ## Files and connections
 
@@ -64,9 +67,9 @@ The artist and cover folders are currently empty.
 | `index.html` | Defines the header, visible native video, demo lyrics, vinyl, accessible controls, artist section, song cards, and footer. Loads both CSS files and `main.js`. |
 | `css/style.css` | Contains theme tokens, global styles, typography, desktop layout, components, CSS vinyl grooves, and native video sizing. |
 | `css/responsive.css` | Contains laptop, tablet, and mobile adjustments, viewport-height sizing, and reduced-motion handling. Loads after `style.css`. |
-| `js/main.js` | Imports the demo song and initializes the controller once after the HTML is parsed. |
-| `js/data.js` | Exports the demo track ID, title, artist, and local video path. |
-| `js/player.js` | Loads the local video, connects custom controls, handles media events and errors, and exports a playback-state snapshot. |
+| `js/main.js` | Initializes the controller, loads the vinyl artwork with a fallback, and subscribes vinyl classes to actual playback state. |
+| `js/data.js` | Exports the demo track identity, local video path, and supplied cover path. |
+| `js/player.js` | Loads the local video, handles controls/events/errors, and provides playback snapshots and subscriptions. |
 | `js/lyrics.js` | Documented placeholder for future timestamp-based lyrics synchronization. Not imported yet. |
 | `assets/videos/` | Holds manually supplied, authorized local video files. |
 | `assets/artists/` and `assets/covers/` | Reserved for future artist images and cover artwork. |
@@ -108,6 +111,7 @@ export const demoSong = Object.freeze({
   title: 'Multo',
   artist: 'Cup of Joe',
   videoSrc: 'assets/videos/multo.mp4',
+  coverArt: 'assets/covers/multo.jpg',
 });
 ```
 
@@ -123,14 +127,19 @@ No video downloading or conversion tools are part of this project.
 
 ### Optional poster and artwork
 
-There is currently no poster or cover image configured, so no missing image is
-requested. The video can display its first decoded frame while paused, and the
-vinyl and song cards retain their labeled artwork placeholders.
+The vinyl cover is configured by `demoSong.coverArt` in `js/data.js`. `main.js`
+reveals it only after the image loads successfully, keeping an accessible labeled
+placeholder if loading fails. The circular center label clips the square image
+and rotates together with its parent record. Song-card artwork remains a
+placeholder; updating cards or switching songs is outside this milestone.
+
+No video poster is configured. The video can display its first decoded frame
+while paused.
 
 If a suitable image exists locally, add a `posterSrc` property to the song,
 such as `posterSrc: 'assets/covers/multo.webp'`. Add that image file first.
 The controller checks availability before setting `video.poster`. This changes
-only the video poster; vinyl artwork synchronization is a later milestone.
+only the video poster, independently of the configured vinyl cover.
 
 ## How the playback controller works
 
@@ -193,13 +202,59 @@ controls and custom controls operate on the same HTMLVideoElement.
 | `muted` | Whether native media mute is active. |
 | `seeking` | Whether the media is currently seeking. |
 | `buffering` | Whether playback is waiting for video data. |
+| `isActivelyPlaying` | Confirmed advancing playback with no pause, seek, buffering, ended state, or error; used for vinyl motion. |
 | `selectedSong` | A copy of the selected track configuration. |
 | `error` | An explanatory error string, or `null`. |
 
-Later vinyl synchronization can read actual playing/buffering state. Later
-lyrics synchronization can compare line timestamps with `currentTime`, including
-after seeking. Those features do not run yet. The track ID and configuration
-prepare for future catalog work without adding a playlist in this milestone.
+`subscribeToPlaybackState(callback)` immediately delivers a snapshot and then
+delivers copies after media updates. It returns an unsubscribe function. The
+vinyl uses one subscription in `main.js`; it does not add video listeners or
+control playback. Later lyrics synchronization can use the same interface and
+compare timestamps with `currentTime`. Lyrics are not synchronized yet.
+
+## Playback-synchronized vinyl (Step 4)
+
+The controller's existing media listeners update `isActivelyPlaying`. A `play`
+event alone does not start rotation: `playing` confirms playback, while advancing
+`timeupdate` values can confirm resumed playback after seeking. A seek jump alone
+is not treated as progression.
+
+| Playback condition | Vinyl behavior |
+| --- | --- |
+| Loading, unavailable, or starting | Stationary. |
+| Confirmed playing | Rotates clockwise at a constant speed. |
+| Paused | Freezes at its current angle. |
+| Waiting/buffering or stalled | Freezes until playback resumes. |
+| Seeking | Freezes; resumes after playing or confirmed progression. |
+| Ended or error | Stops. |
+| Reduced-motion preference | Stays stationary while video playback still works. |
+
+The subscriber toggles `.is-playing` and `.is-paused`. CSS changes only
+`animation-play-state` between `running` and `paused`; the same animation remains
+attached, preserving the current angle when paused and resumed. A linear
+`vinyl-rotation` keyframe makes one turn every ten seconds. There is no JavaScript
+rotation loop or second playback controller.
+
+The `.vinyl-stage` wrapper clips the rotating square's transparent corners to
+the visible circle. This prevents transformed bounds from causing mobile
+horizontal scrolling. The cover and grooves stay centered, with no tonearm,
+glow, or added decorations.
+
+The reduced-motion media query in `css/responsive.css` pauses the animation,
+including when `.is-playing` is set. It never changes video state. It also keeps
+the current rotation angle when the motion preference changes.
+
+### Change size or speed
+
+- Change `--vinyl-rotation-duration` in `css/style.css` to adjust speed; the
+  current value is `10s`. Keep a constant linear animation.
+- Change `--vinyl-max-size` in `css/style.css` to adjust the maximum diameter;
+  the current value is `380px`.
+- The desktop `.vinyl-stage` rule in `css/responsive.css` also caps diameter by
+  column width and viewport height with `clamp()`. It reaches 350px at the tested
+  1440×900 viewport and 380px at 1920×1080. Short laptops use a smaller diameter
+  to retain the approved three-column layout and single-screen fit.
+- Tablet and mobile size limits remain in `responsive.css`.
 
 ## Run and manually test with VS Code Live Server
 
@@ -215,12 +270,16 @@ prepare for future catalog work without adding a playlist in this milestone.
 9. Resize to desktop and mobile widths and check visibility and wrapping.
 10. To test a missing file without deleting the supplied MP4, temporarily change
     `videoSrc` to a nonexistent path, reload, and restore the configuration.
+11. Play and pause to inspect vinyl motion. It should freeze at the same angle,
+    and seeking should pause rotation until active playback resumes.
+12. Enable reduced motion in the operating system or browser's developer tools:
+    the record should stay still while the video continues playing.
 
 Use HTTP through Live Server rather than opening a `file://` URL: ES modules
 and the file availability check require a local server. Live Server is a
 development tool, not a dependency shipped with the website.
 
-## Verification of this revision
+## Step 3 verification (native-video revision)
 
 Actual tests used the existing supplied MP4 through the running Live Server at
 `http://127.0.0.1:5500/index.html`:
@@ -254,11 +313,33 @@ for reliable seeking. No server implementation was added to the project.
 Physical mobile devices, all browsers, a full screen-reader audit, and caption
 support were not tested. Current supplied assets include no caption file.
 
+### Step 4 verification
+
+Actual local-video tests through Live Server passed rotation during playing,
+exact angle retention during pause, timeline continuity on resume, stationary
+paused seeking, freeze/resume during active seeking, and stopping at the real
+ended event. Reduced-motion emulation froze the record while actual media time
+continued to advance; restoring motion kept the animation timeline.
+
+Injected `waiting`, `playing`, and `error` events tested buffering freeze,
+recovery, and error stops. A naturally occurring network-buffering interruption
+was not reproduced. Fault-injected missing and invalid videos stayed stationary;
+a missing cover showed the labeled placeholder without a broken image.
+
+Repeated initialization retained one listener per media event. Subscription
+tests verified immediate delivery, updates, and unsubscribe behavior. Responsive
+checks at 1920×1080, 1440×900, 1366×768, 1280×720, 1024×768, 768×1024, 390×844,
+and 320×640 included a 45-degree rotation to expose possible overflow. Every
+tested record remained circular, centered within its column, clear of controls,
+and free from horizontal scrolling. The tested desktop layouts still fit one
+screen. Physical-device motion preferences and other browsers remain untested.
+The final normal-playback browser run reported no JavaScript console errors.
+
 ## Known limitations and unfinished features
 
 - Only Multo is configured. The other 29 tracks and dynamic switching remain future work.
-- Artwork and artist information are still placeholders; no poster is configured.
-- Vinyl rotation and lyrics synchronization remain unimplemented.
+- Artist information and song-card artwork remain placeholders; no poster is configured.
+- Lyrics synchronization remains unimplemented.
 - Search, genre filtering, favorites/localStorage, and artist navigation remain unimplemented.
 - The current five lyric lines are original demo text, not Multo lyrics.
 - Codec, volume, fullscreen, and buffering behavior can vary by browser and device.

@@ -2,7 +2,7 @@
 <!--
   FILE: index.html
   PURPOSE: Presents the listening interface with native local video playback.
-  RESPONSIBILITIES: Defines the visible player, accessible controls, and demo sections.
+  RESPONSIBILITIES: Defines the video, synchronized vinyl, controls, and demo lyrics.
   CONNECTED FILES: Loads css/style.css, css/responsive.css, and js/main.js.
 -->
 <html lang="en">
@@ -88,11 +88,16 @@
           <p class="small-note lyrics-bottom-note">Static preview · synchronization coming later</p>
         </section>
 
-        <!-- Vinyl record: CSS grooves and a labeled artwork placeholder, no tonearm. -->
+        <!-- Vinyl record: the label and supplied cover rotate with the grooves. -->
         <section class="record-region" aria-labelledby="song-heading" aria-describedby="prototype-notice">
-          <div class="vinyl is-paused" role="img" aria-label="Stationary vinyl record with a placeholder center label; album artwork has not been added">
-            <div class="vinyl-label"><span>Artwork</span><strong>placeholder</strong><span class="label-bottom">OPM AFTERHOURS</span></div>
-            <span class="vinyl-spindle" aria-hidden="true"></span>
+          <div class="vinyl-stage">
+            <div id="vinyl-record" class="vinyl is-paused" role="img" aria-label="Vinyl record for Multo by Cup of Joe with a center artwork placeholder">
+              <div class="vinyl-label">
+                <img id="vinyl-artwork" class="vinyl-artwork" alt="Supplied cover artwork for Multo by Cup of Joe" hidden>
+                <div id="vinyl-artwork-placeholder"><span>Artwork</span><strong>placeholder</strong><span class="label-bottom">OPM AFTERHOURS</span></div>
+              </div>
+              <span class="vinyl-spindle" aria-hidden="true"></span>
+            </div>
           </div>
           <div class="song-summary">
             <div><h2 id="song-heading" class="serif-heading">Multo</h2><p>Cup of Joe</p></div>

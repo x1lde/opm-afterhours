@@ -2,10 +2,11 @@
  * FILE: player.js
  * PURPOSE: Controls the existing HTML5 video element and custom playback UI.
  * RESPONSIBILITIES: Loads one local track, reads media events and metadata,
- * connects play/pause, seeking, and volume, and explains media failures.
+ * connects play/pause, seeking, and volume, explains media failures, and
+ * publishes playback snapshots for independent UI components.
  * CONNECTED FILES: main.js supplies demoSong from data.js. index.html supplies
  * the video and controls; CSS preserves the approved layout. Future vinyl and
- * lyrics features can read getPlaybackState() without changing this controller.
+ * lyrics features can read or subscribe to state without a second controller.
  */
 
 const LOAD_TIMEOUT_MS = 15000;
@@ -21,6 +22,7 @@ let loadingTimer = null;
 let bufferingTimer = null;
 let previewingSeek = false;
 let message = 'Loading local video…';
+const playbackSubscribers = new Set();
 
 // All playback information lives here. Volume uses 0–100 for the UI, while
 // HTMLVideoElement.volume uses 0–1. Unknown or infinite duration is represented by 0.
@@ -34,6 +36,7 @@ const playbackState = {
   muted: false,
   seeking: false,
   buffering: false,
+  isActivelyPlaying: false,
   selectedSong: null,
   error: null,
 };
@@ -41,13 +44,34 @@ const playbackState = {
 /**
  * Returns a copy of the latest media state; accepts no parameters.
  * @returns {object} Track ID, status, time/duration in seconds, volume (0–100),
- * seeking/buffering flags, readiness, selected song, and any error message.
+ * seeking/buffering flags, isActivelyPlaying, selected song, and any error message.
  */
 export function getPlaybackState() {
   return {
     ...playbackState,
+    // A request to play is not enough: media must confirm playing or advance
+    // after a seek, with no pause, buffering, seeking, or error in progress.
+    isActivelyPlaying: playbackState.isActivelyPlaying && playbackState.ready
+      && !playbackState.seeking && !playbackState.buffering && !playbackState.error
+      && !!video && !video.paused && !video.ended,
     selectedSong: playbackState.selectedSong ? { ...playbackState.selectedSong } : null,
   };
+}
+
+/**
+ * Subscribes to the current snapshot immediately and to later media updates.
+ * @param {Function} callback Receives a state copy; use isActivelyPlaying for motion.
+ * @returns {Function} Call this function to remove the subscription.
+ */
+export function subscribeToPlaybackState(callback) {
+  playbackSubscribers.add(callback);
+  callback(getPlaybackState());
+  return () => playbackSubscribers.delete(callback);
+}
+
+/** Publishes copies so a UI subscriber cannot mutate the controller's state. */
+function notifyPlaybackSubscribers() {
+  for (const callback of playbackSubscribers) callback(getPlaybackState());
 }
 
 /**
@@ -155,10 +179,12 @@ function handleVideoEvent(event) {
     showError(errors[video.error?.code] || 'The video is unavailable. Check the file path and MP4 format.');
     return;
   }
+  const previousTime = playbackState.currentTime;
   readMediaValues();
 
   switch (event.type) {
     case 'loadedmetadata':
+      playbackState.isActivelyPlaying = false;
       playbackState.ready = true;
       playbackState.error = null;
       playbackState.status = 'paused';
@@ -166,6 +192,7 @@ function handleVideoEvent(event) {
       finishLoading?.();
       break;
     case 'play':
+      playbackState.isActivelyPlaying = false;
       // play means playback was requested; playing confirms media is advancing.
       playbackState.status = 'starting';
       playbackState.error = null;
@@ -173,6 +200,7 @@ function handleVideoEvent(event) {
       beginBufferTimeout();
       break;
     case 'playing':
+      playbackState.isActivelyPlaying = true;
       playbackState.ready = true;
       playbackState.status = 'playing';
       playbackState.buffering = false;
@@ -181,6 +209,7 @@ function handleVideoEvent(event) {
       clearBufferTimeout();
       break;
     case 'pause':
+      playbackState.isActivelyPlaying = false;
       playbackState.buffering = false;
       clearBufferTimeout();
       if (!playbackState.error || playbackState.ready) {
@@ -191,6 +220,7 @@ function handleVideoEvent(event) {
       break;
     case 'waiting':
     case 'stalled':
+      playbackState.isActivelyPlaying = false;
       if (!video.paused && !playbackState.error) {
         playbackState.status = 'buffering';
         playbackState.buffering = true;
@@ -199,6 +229,7 @@ function handleVideoEvent(event) {
       }
       break;
     case 'seeking':
+      playbackState.isActivelyPlaying = false;
       playbackState.seeking = true;
       if (!playbackState.error) {
         playbackState.status = 'seeking';
@@ -207,6 +238,7 @@ function handleVideoEvent(event) {
       }
       break;
     case 'seeked':
+      playbackState.isActivelyPlaying = false;
       playbackState.seeking = false;
       playbackState.buffering = !video.paused && video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA;
       clearBufferTimeout();
@@ -216,7 +248,17 @@ function handleVideoEvent(event) {
         if (playbackState.buffering) beginBufferTimeout();
       }
       break;
+    case 'timeupdate':
+      // Some browsers resume after seeking without another playing event.
+      // Actual forward progress confirms recovery; the seek jump alone does not.
+      if (playbackState.status === 'playing' && playbackState.currentTime > previousTime
+          && !video.paused && !video.seeking && !playbackState.buffering
+          && video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+        playbackState.isActivelyPlaying = true;
+      }
+      break;
     case 'ended':
+      playbackState.isActivelyPlaying = false;
       playbackState.status = 'ended';
       playbackState.buffering = false;
       playbackState.seeking = false;
@@ -290,7 +332,7 @@ function readMediaValues() {
   playbackState.seeking = video.seeking;
 }
 
-/** Updates the existing UI from media state; leaves vinyl and lyrics untouched. */
+/** Updates playback controls and notifies components without styling them here. */
 function renderControls() {
   const playing = !video.paused && !video.ended && playbackState.ready;
   ui.playButton.disabled = !playbackState.ready;
@@ -311,6 +353,7 @@ function renderControls() {
   ui.volume.value = playbackState.muted ? 0 : playbackState.volume;
   ui.volume.setAttribute('aria-valuetext', playbackState.muted ? 'Muted' : `${playbackState.volume}%`);
   if (ui.status.textContent !== message) ui.status.textContent = message;
+  notifyPlaybackSubscribers();
 }
 
 /** Starts a finite warning timer without pretending playback has succeeded. */
@@ -335,6 +378,7 @@ function clearBufferTimeout() {
  * @param {boolean} fatal Whether to disable controls (false allows another try).
  */
 function showError(errorMessage, fatal = true) {
+  playbackState.isActivelyPlaying = false;
   playbackState.status = fatal ? 'error' : video.ended ? 'ended' : video.paused ? 'paused' : 'playing';
   playbackState.error = errorMessage;
   playbackState.buffering = false;

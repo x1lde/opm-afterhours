@@ -1,14 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
   FILE: index.html
-  PURPOSE: Provides the website's HTML structure and placeholder homepage.
-  RESPONSIBILITIES: Sets page metadata and displays the title and subtitle.
+  PURPOSE: Presents the listening interface with native local video playback.
+  RESPONSIBILITIES: Defines the visible player, accessible controls, and demo sections.
   CONNECTED FILES: Loads css/style.css, css/responsive.css, and js/main.js.
 -->
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OPM Afterhours — a home for filipino music. A music discovery school project.">
     <title>OPM Afterhours</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="css/style.css">
@@ -16,12 +17,137 @@
     <script type="module" src="js/main.js"></script>
   </head>
   <body>
-    <!-- Homepage introduction: the only visible section in Step 1. -->
-    <main class="homepage">
-      <header class="introduction">
-        <h1>OPM Afterhours</h1>
-        <p>a home for filipino music</p>
-      </header>
+    <a class="skip-link" href="#main-content">Skip to listening experience</a>
+
+    <!-- Navigation: links and search are reserved for later milestones. -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand" aria-label="OPM Afterhours">
+          <span class="brand-prefix">OPM</span>
+          <span class="brand-name">afterhours<span class="brand-dot">.</span></span>
+        </div>
+        <nav class="navigation" aria-label="Main navigation" aria-describedby="prototype-notice">
+          <a class="navigation-link is-current" role="link" aria-current="page" aria-disabled="true">Home</a>
+          <a class="navigation-link" role="link" aria-disabled="true">Artists</a>
+          <a class="navigation-link" role="link" aria-disabled="true">Favorites</a>
+          <a class="navigation-link" role="link" aria-disabled="true">About</a>
+        </nav>
+        <div class="search-field">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></svg>
+          <label class="visually-hidden" for="music-search">Search artists and songs (unavailable in prototype)</label>
+          <input id="music-search" type="search" placeholder="Search artists, songs…" disabled aria-describedby="prototype-notice">
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" class="page-shell" tabindex="-1">
+      <div class="page-introduction">
+        <div>
+          <h1 class="eyebrow">a home for filipino music</h1>
+          <p class="introduction-note">Stay a little. Find your next favorite.</p>
+        </div>
+        <p id="prototype-notice" class="prototype-note"><span class="status-dot" aria-hidden="true"></span>Single-track demo · navigation, search &amp; favorites unavailable</p>
+      </div>
+
+      <!-- Music player: native controls include the browser's fullscreen action. -->
+      <section class="listening-layout" aria-label="Featured listening experience">
+        <section class="video-region" aria-labelledby="video-heading">
+          <div class="section-heading">
+            <h2 id="video-heading" class="eyebrow">Music video</h2>
+            <span class="small-note">Demo selection</span>
+          </div>
+          <div class="video-frame">
+            <video id="music-video" controls preload="metadata" playsinline aria-label="Multo by Cup of Joe music video" aria-describedby="player-status">
+              Your browser does not support HTML5 video.
+            </video>
+          </div>
+          <div class="video-caption">
+            <span class="caption-marker" aria-hidden="true">MV</span>
+            <div><h3>Multo <span>— Cup of Joe</span></h3><p id="player-status" role="status" aria-live="polite">Loading local video…</p></div>
+          </div>
+          <p class="video-footnote">A little space for the songs that stay with you.</p>
+          <noscript><p class="small-note">Enable JavaScript to load the configured local video and connect the playback controls.</p></noscript>
+        </section>
+
+        <!-- Lyrics: five original demo lines; the active appearance is static. -->
+        <section class="lyrics-region" aria-labelledby="lyrics-heading" aria-describedby="lyrics-note">
+          <div class="section-heading">
+            <h2 id="lyrics-heading" class="serif-heading">Lyrics</h2>
+            <span class="small-note">Demo verse</span>
+          </div>
+          <p id="lyrics-note" class="lyrics-note">Original placeholder lines · not from Multo</p>
+          <div class="lyrics-scroll" tabindex="0" role="region" aria-label="Scrollable original demo lyrics">
+            <ol class="lyric-lines" lang="fil">
+              <li>Sa tahimik na daan</li>
+              <li>May himig ang mga ilaw</li>
+              <li class="is-active"><span class="visually-hidden">Highlighted demo line: </span>Dito muna tayo,<br>sa pagitan ng gabi</li>
+              <li>Habang gising pa ang buwan</li>
+              <li>May awit pang naghihintay</li>
+            </ol>
+          </div>
+          <p class="small-note lyrics-bottom-note">Static preview · synchronization coming later</p>
+        </section>
+
+        <!-- Vinyl record: CSS grooves and a labeled artwork placeholder, no tonearm. -->
+        <section class="record-region" aria-labelledby="song-heading" aria-describedby="prototype-notice">
+          <div class="vinyl is-paused" role="img" aria-label="Stationary vinyl record with a placeholder center label; album artwork has not been added">
+            <div class="vinyl-label"><span>Artwork</span><strong>placeholder</strong><span class="label-bottom">OPM AFTERHOURS</span></div>
+            <span class="vinyl-spindle" aria-hidden="true"></span>
+          </div>
+          <div class="song-summary">
+            <div><h2 id="song-heading" class="serif-heading">Multo</h2><p>Cup of Joe</p></div>
+            <button class="icon-button favorite-button" type="button" disabled aria-label="Add Multo to favorites (unavailable in prototype)">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+            </button>
+          </div>
+          <!-- Playback controls: enabled after the local video metadata loads. -->
+          <div class="playback-controls">
+            <label class="visually-hidden" for="playback-progress">Playback position</label>
+            <input id="playback-progress" class="range-input progress-input" type="range" min="0" max="100" value="0" step="0.1" disabled aria-describedby="player-status">
+            <div class="time-labels"><span id="current-time" aria-label="Current time unknown">--:--</span><span id="total-duration" aria-label="Total duration unknown">--:--</span></div>
+            <div class="transport-controls">
+              <button class="icon-button" type="button" disabled aria-label="Previous song (unavailable in prototype)"><svg class="icon filled-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h2v14H5zM19 5v14L8 12z"/></svg></button>
+              <button id="play-pause" class="play-button" type="button" disabled aria-label="Play Multo" aria-describedby="player-status"><svg class="icon filled-icon" viewBox="0 0 24 24" aria-hidden="true"><path id="play-pause-icon" d="m9 5 11 7-11 7z"/></svg></button>
+              <button class="icon-button" type="button" disabled aria-label="Next song (unavailable in prototype)"><svg class="icon filled-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 5h2v14h-2zM5 5v14l11-7z"/></svg></button>
+            </div>
+            <div class="volume-control">
+              <label for="volume">Volume</label>
+              <input id="volume" class="range-input" type="range" min="0" max="100" value="50" disabled aria-describedby="player-status">
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- Artist information and song collection: examples, not official rankings. -->
+      <section class="artist-section" aria-labelledby="artist-heading">
+        <div class="artist-information">
+          <p class="eyebrow">In the spotlight · demo artist</p>
+          <h2 id="artist-heading" class="serif-heading">Cup of Joe</h2>
+          <p class="artist-biography">Biography placeholder. The band's story will be added with the artist catalog.</p>
+          <ul class="genre-labels" aria-label="Placeholder genre labels"><li>Pop</li><li>Alternative</li></ul>
+          <p class="small-note">Genre labels are illustrative.</p>
+        </div>
+        <div class="song-collection">
+          <div class="collection-heading"><h3>Top 3 Songs</h3><span class="small-note">Demo collection · not a ranking</span></div>
+          <ul class="song-cards">
+            <li class="song-card is-selected" aria-current="true">
+              <div class="cover-placeholder" role="img" aria-label="Multo artwork placeholder"><span>ARTWORK<br>PLACEHOLDER</span></div>
+              <div class="song-card-details"><h4>Multo</h4><p>Duration: <span id="selected-song-duration">--:--</span></p><span class="selection-label">Selected · demo</span></div>
+            </li>
+            <li class="song-card">
+              <div class="cover-placeholder" role="img" aria-label="Demo track 02 artwork placeholder"><span>ARTWORK<br>PLACEHOLDER</span></div>
+              <div class="song-card-details"><h4>Demo track 02</h4><p>Duration: --:--</p><span class="small-note">Song placeholder</span></div>
+            </li>
+            <li class="song-card">
+              <div class="cover-placeholder" role="img" aria-label="Demo track 03 artwork placeholder"><span>ARTWORK<br>PLACEHOLDER</span></div>
+              <div class="song-card-details"><h4>Demo track 03</h4><p>Duration: --:--</p><span class="small-note">Song placeholder</span></div>
+            </li>
+          </ul>
+        </div>
+      </section>
     </main>
+
+    <!-- Footer -->
+    <footer class="site-footer"><span>OPM Afterhours</span><p>A school project, made for the love of Filipino music.</p><span class="small-note">Local video playback · Step 3</span></footer>
   </body>
 </html>

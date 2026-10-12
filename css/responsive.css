@@ -1,14 +1,280 @@
 /*
  * FILE: responsive.css
- * PURPOSE: Keeps the page comfortable to read on smaller screens.
- * RESPONSIBILITIES: Adjusts layout spacing at screen-width breakpoints.
- * CONNECTED FILES: Loaded after style.css in index.html; reuses its variables
- * and overrides only the styles that need to change.
+ * PURPOSE: Adapts the listening interface to laptops, tablets, and phones.
+ * RESPONSIBILITIES: Reorganizes the three regions, condenses navigation,
+ * and keeps lyrics readable and the vinyl circular at smaller widths.
+ * CONNECTED FILES: Loaded after style.css; reuses its tokens and components.
  */
 
-/* Responsive layouts */
-@media (max-width: 480px) {
-  .homepage {
+/* Standard laptops */
+@media (max-width: 1200px) {
+  .header-inner {
+    gap: var(--space-md);
+  }
+  .navigation {
+    gap: var(--space-md);
+  }
+  .listening-layout {
+    gap: var(--space-md);
+  }
+  .song-cards {
+    gap: 0.65rem;
+  }
+  .song-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Desktop height: reserve room for the header, controls, artist row, and footer.
+   Content can still scroll on unusually short screens or with enlarged text;
+   nothing is clipped or hidden to force a one-screen layout. */
+@media (min-width: 1001px) {
+  .header-inner {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+  .page-introduction {
+    padding: 0.5rem 0;
+  }
+  .listening-layout {
+    padding: 0.25rem 0 1rem;
+  }
+  .record-region {
+    max-width: 380px;
+  }
+  .vinyl {
+    width: min(100%, clamp(170px, calc(100svh - 575px), 380px));
+    margin-inline: auto;
+  }
+  .song-summary {
+    margin: 0.5rem 0 0;
+  }
+  .song-summary .serif-heading {
+    font-size: 1.75rem;
+  }
+  /* Share the final control row instead of placing volume below transport. */
+  .playback-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+    column-gap: 0.5rem;
+  }
+  .progress-input, .time-labels {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  /* Time text uses the space below the track within its 44px control row. */
+  .time-labels {
+    align-self: end;
+    pointer-events: none;
+  }
+  .transport-controls {
+    gap: 0.5rem;
+    margin: 0.35rem 0 0;
+  }
+  .volume-control {
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+  .volume-control input {
+    min-width: 0;
+  }
+  .video-region, .lyrics-region {
+    padding: 0;
+  }
+  .video-region {
+    width: min(100%, max(320px, calc((100svh - 520px) * 16 / 9)));
+  }
+  .video-footnote {
+    margin-top: 0.75rem;
+  }
+  .lyrics-note {
+    margin-bottom: 0.75rem;
+  }
+  .lyric-lines {
+    gap: 0.5rem;
+  }
+  .lyrics-bottom-note {
+    margin-top: 0.75rem;
+  }
+  .artist-section {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    padding: 0.5rem 0;
+    gap: var(--space-lg);
+  }
+  .artist-information .serif-heading {
+    font-size: 1.8rem;
+    margin: 0.25rem 0 0.4rem;
+  }
+  .genre-labels {
+    margin: 0.5rem 0 0.25rem;
+  }
+  .collection-heading {
+    margin-bottom: 0.75rem;
+  }
+  .song-card {
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.65rem;
+  }
+  .cover-placeholder {
+    width: 48px;
+  }
+  .site-footer {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+}
+
+/* Tablets: video spans the top row; lyrics and vinyl share the next row. */
+@media (max-width: 1000px) {
+  .header-inner {
+    flex-wrap: wrap;
+  }
+  .navigation {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: var(--space-xl);
+  }
+  .search-field {
+    width: min(45%, 320px);
+  }
+  .listening-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-xl);
+  }
+  .video-region {
+    grid-column: 1 / -1;
+  }
+  .video-footnote {
+    margin-top: var(--space-sm);
+  }
+  .record-region {
+    max-width: 360px;
+  }
+  .vinyl-label {
+    font-size: 0.9rem;
+  }
+  .lyric-lines .is-active {
+    font-size: 34px;
+  }
+  .artist-section {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+  .artist-biography {
+    max-width: 65ch;
+  }
+  .song-card {
+    flex-direction: row;
+  }
+}
+
+/* Mobile: natural document order is video, lyrics, vinyl, then artist details. */
+@media (max-width: 600px) {
+  :root {
+    --page-gutter: 1.25rem;
+  }
+  .header-inner {
+    gap: var(--space-sm);
+    padding-top: var(--space-sm);
+    padding-bottom: 0.5rem;
+  }
+  .brand-name {
+    font-size: 1.9rem;
+  }
+  .search-field {
+    width: 100%;
+    order: 2;
+  }
+  .navigation {
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .navigation-link {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 0.8rem;
+  }
+  .page-introduction {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: var(--space-md) 0;
+  }
+  .listening-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg);
+    padding-top: 0;
+  }
+  .video-region {
+    grid-column: auto;
+  }
+  .lyrics-region {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-md);
+  }
+  /* A focusable scroll area keeps long verses usable without expanding the page. */
+  .lyrics-scroll {
+    max-height: 280px;
+    padding: var(--space-xs) var(--space-xs) var(--space-xs) 0;
+  }
+  .lyric-lines {
+    gap: 1rem;
+  }
+  .lyric-lines li {
+    font-size: 18px;
+  }
+  .lyric-lines .is-active {
+    font-size: 30px;
+  }
+  .record-region {
+    max-width: 320px;
+    padding-top: var(--space-xs);
+  }
+  .vinyl-label {
+    font-size: 0.85rem;
+  }
+  .transport-controls {
+    gap: var(--space-xl);
+  }
+  .volume-control {
+    padding: var(--space-xs) 0;
+  }
+  .volume-control input {
+    margin: 0;
+  }
+  .artist-section {
+    padding-top: var(--space-md);
+  }
+  .song-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .song-card {
     padding: var(--space-sm);
+    gap: var(--space-sm);
+  }
+  .cover-placeholder {
+    width: 64px;
+  }
+  .song-card h4 {
+    font-size: 0.95rem;
+  }
+  .site-footer {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+}
+
+/* Respect motion preferences when future playback sets the playing class. */
+@media (prefers-reduced-motion: reduce) {
+  .vinyl {
+    animation: none;
+  }
+  .lyric-lines li {
+    transition: none;
   }
 }

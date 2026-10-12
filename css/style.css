@@ -1,34 +1,37 @@
 /*
  * FILE: style.css
- * PURPOSE: Defines the permanent dark theme and base page styling.
- * RESPONSIBILITIES: Provides reusable colors, spacing, and border radii;
- * centers the introduction and styles its text.
- * CONNECTED FILES: Loaded by index.html before responsive.css, which adjusts
- * these styles for smaller screens.
+ * PURPOSE: Defines the dark editorial theme and desktop listening interface.
+ * RESPONSIBILITIES: Provides design tokens, layout, typography, components,
+ * CSS vinyl grooves, and prepared playback-state classes.
+ * CONNECTED FILES: Loaded by index.html before responsive.css. No assets or
+ * external fonts are required; player.js controls the native video element.
  */
 
-/* Theme variables: shared values keep styling consistent across the site. */
+/* Theme variables */
 :root {
   color-scheme: dark;
-
-  --color-background: #111113;
-  --color-background-secondary: #18181b;
-  --color-surface: #202024;
-  --color-surface-raised: #29292e;
-  --color-text-primary: #f2efed;
-  --color-text-secondary: #bcb5b8;
-  --color-accent: #c58e9c;
-  --color-border: #3a353b;
-
+  --color-background: #111012;
+  --color-background-secondary: #181619;
+  --color-surface: #211d21;
+  --color-surface-raised: #292329;
+  --color-text-primary: #f1e9e7;
+  --color-text-secondary: #bcb4b9;
+  --color-text-muted: #a49aa2;
+  --color-accent: #cc98a7;
+  --color-border: #383036;
+  --color-selected: #302127;
   --space-xs: 0.5rem;
   --space-sm: 1rem;
   --space-md: 1.5rem;
   --space-lg: 2rem;
   --space-xl: 3rem;
-
   --radius-sm: 0.375rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-sans: Arial, Helvetica, sans-serif;
+  --page-width: 1600px;
+  --page-gutter: clamp(1.5rem, 3.4vw, 4rem);
 }
 
 /* Global styles */
@@ -37,42 +40,652 @@
 *::after {
   box-sizing: border-box;
 }
-
 body {
   margin: 0;
-  background-color: var(--color-background);
+  background: var(--color-background);
   color: var(--color-text-primary);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.6;
 }
-
-/* Homepage layout */
-.homepage {
-  display: grid;
-  /* Use the small viewport height on mobile, with vh as an older-browser fallback. */
-  min-height: 100vh;
-  min-height: 100svh;
-  padding: var(--space-lg);
-  place-items: center;
+h1, h2, h3, h4, p {
+  margin: 0;
 }
-
-.introduction {
-  min-width: 0;
-  text-align: center;
-  overflow-wrap: break-word;
+button, input {
+  font: inherit;
+}
+button {
+  border: 0;
+}
+button:disabled, input:disabled, [aria-disabled='true'] {
+  cursor: not-allowed;
+}
+input:disabled {
+  opacity: 1;
+}
+svg {
+  display: block;
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 5px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--color-background);
+  background: var(--color-accent);
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.filled-icon {
+  fill: currentColor;
+  stroke: none;
 }
 
 /* Typography */
-h1 {
-  margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 6vw, 3.5rem);
+.serif-heading {
+  font-family: var(--font-serif);
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.15;
+  font-size: 2rem;
+  letter-spacing: -0.035em;
+}
+.eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.17em;
+  font-weight: 400;
+  color: var(--color-accent);
+}
+.small-note {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
 }
 
-.introduction p {
-  margin: var(--space-sm) 0 0;
+/* Navigation */
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  background: #0e0d0f;
+}
+.header-inner {
+  max-width: var(--page-width);
+  margin: auto;
+  padding: 1.25rem var(--page-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+.brand {
+  font-family: var(--font-serif);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.brand-prefix {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.05em;
+}
+.brand-name {
+  font-size: 2.2rem;
+  font-style: italic;
+  letter-spacing: -0.06em;
+}
+.brand-dot {
+  color: var(--color-accent);
+}
+.navigation {
+  display: flex;
+  gap: clamp(1.25rem, 2.5vw, 3rem);
+  align-self: stretch;
+  align-items: center;
+}
+.navigation-link {
+  position: relative;
   color: var(--color-text-secondary);
-  font-size: 1rem;
+  font-size: 0.85rem;
+  padding: 0.5rem 0;
+  text-decoration: none;
+}
+.navigation-link.is-current {
+  color: var(--color-text-primary);
+}
+.navigation-link.is-current::after {
+  content: '';
+  height: 2px;
+  background: var(--color-accent);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: var(--radius-sm);
+}
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 2rem;
+  padding: 0.65rem var(--space-sm);
+  width: clamp(200px, 22vw, 320px);
+  color: var(--color-text-secondary);
+}
+.search-field input {
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+.search-field input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 1;
+}
+
+/* Main layout: zero minimum grid widths let long text wrap without overflow. */
+.page-shell {
+  max-width: var(--page-width);
+  margin: auto;
+  padding: 0 var(--page-gutter);
+}
+.page-introduction {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg) 0;
+}
+.introduction-note {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+.prototype-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+.status-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.listening-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.95fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: center;
+  padding: 1rem 0 var(--space-xl);
+}
+.listening-layout > *, .artist-section > * {
+  min-width: 0;
+}
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+/* Music player: surrounding gradient never covers the native video controls. */
+.video-region {
+  padding: var(--space-sm) 0;
+  background: radial-gradient(ellipse at 30% 40%, #292027 0%, transparent 72%);
+}
+.video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #141215;
+}
+.video-frame video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  object-fit: contain;
+  background: #141215;
+}
+.play-button:not(:disabled), .range-input:not(:disabled) {
+  cursor: pointer;
+}
+.play-button:not(:disabled):hover {
+  background: var(--color-text-primary);
+}
+.video-caption {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: var(--space-sm);
+}
+.caption-marker {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 25px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+.video-caption h3 {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+.video-caption h3 span {
+  color: var(--color-text-secondary);
+}
+.video-caption p {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+.video-footnote {
+  margin-top: var(--space-lg);
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Lyrics: the emphasized line is a fixed demo state, not timed playback. */
+.lyrics-region {
+  padding: var(--space-sm) 0;
+}
+.lyrics-region .serif-heading {
+  font-size: 1.7rem;
+}
+.lyrics-note {
+  color: var(--color-text-secondary);
+  font-size: 0.65rem;
+  margin-bottom: var(--space-md);
+}
+.lyrics-scroll {
+  max-height: 410px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  padding-right: 0.7rem;
+}
+.lyric-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.1rem;
+}
+.lyric-lines li {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+  transition: color 200ms ease, font-size 200ms ease;
+}
+.lyric-lines .is-active {
+  font-size: clamp(30px, 2.3vw, 36px);
+  line-height: 1.25;
+  color: var(--color-text-primary);
+  font-weight: 400;
+  font-family: var(--font-serif);
+  letter-spacing: -0.025em;
+  padding: 0.35rem 0;
+}
+.lyrics-bottom-note {
+  margin-top: var(--space-md);
+  font-size: 0.65rem;
+}
+
+/* Vinyl appearance: repeating radial bands create grooves without an image. */
+.record-region {
+  width: 100%;
+  max-width: 430px;
+  justify-self: center;
+}
+.vinyl {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid #62565c;
+  background: repeating-radial-gradient(circle, #0b0b0c 0px, #0b0b0c 2px, #232023 3px, #101012 4px);
+  box-shadow: inset 0 0 0 5px #09090a, inset 0 0 0 7px #332d31;
+}
+/* A restrained reflection adds depth; it stays inside the decorative record. */
+.vinyl::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: conic-gradient(from 15deg, transparent 0deg, #ffffff0c 55deg, transparent 90deg, transparent 185deg, #ffffff10 240deg, transparent 285deg);
+}
+.vinyl-label {
+  position: relative;
+  width: 43%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #876773;
+  color: #fff4f2;
+  border: 1px solid #b5929f;
+  text-align: center;
+  font-size: clamp(0.65rem, 1vw, 0.9rem);
+  line-height: 1.5;
+}
+.vinyl-label strong {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.2em;
+}
+.label-bottom {
+  position: absolute;
+  bottom: 14%;
+  font-size: 0.42em;
+  letter-spacing: 0.14em;
+}
+.vinyl-spindle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 3px solid #ddd2d6;
+  border-radius: 50%;
+  background: #121113;
+}
+
+/* Vinyl animation: prepared states only; HTML uses is-paused throughout Step 2. */
+.vinyl {
+  animation: vinyl-rotation 20s linear infinite;
+  animation-play-state: paused;
+}
+.vinyl.is-playing {
+  animation-play-state: running;
+}
+.vinyl.is-paused {
+  animation-play-state: paused;
+}
+@keyframes vinyl-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Playback controls */
+.song-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: var(--space-md) 0 0.8rem;
+  padding: 0 0.3rem;
+}
+.song-summary .serif-heading {
+  font-size: 2rem;
+}
+.song-summary p {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+.icon-button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--color-text-primary);
+  padding: 0;
+  border-radius: 50%;
+}
+.favorite-button {
+  color: var(--color-accent);
+}
+.range-input {
+  appearance: none;
+  display: block;
+  /* Keep a generous touch area while drawing a slim track below. */
+  height: 44px;
+  width: 100%;
+  background: transparent;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+.range-input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+}
+.range-input::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+}
+.range-input::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -3px;
+  background: var(--color-text-secondary);
+  border-radius: 50%;
+}
+.range-input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  background: var(--color-text-secondary);
+  border-radius: 50%;
+}
+.time-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.transport-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-lg);
+  margin: 0.8rem 0;
+}
+.play-button {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-accent);
+  color: #20171b;
+}
+.volume-control {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.volume-control label {
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+}
+.volume-control input {
+  max-width: 120px;
+}
+
+/* Artist information */
+.artist-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 2.15fr);
+  gap: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-lg) 0 var(--space-xl);
+}
+.artist-information .serif-heading {
+  margin: 0.65rem 0 var(--space-sm);
+  font-size: 2.2rem;
+}
+.artist-biography {
+  font-size: 0.8rem;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  max-width: 38ch;
+}
+.genre-labels {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0 var(--space-xs);
+  padding: 0;
+}
+.genre-labels li {
+  padding: 0.2rem 0.65rem;
+  font-size: 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 2rem;
+  color: var(--color-text-secondary);
+}
+
+/* Song collection */
+.collection-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-md);
+}
+.collection-heading h3 {
+  position: relative;
+  padding: 0.5rem 0 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-accent);
+}
+.collection-heading h3::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-accent);
+}
+.song-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+}
+.song-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-secondary);
+  min-width: 0;
+}
+.song-card.is-selected {
+  border-color: var(--color-accent);
+  background: var(--color-selected);
+}
+.cover-placeholder {
+  width: 64px;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface-raised);
+  border: 1px solid #50414a;
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-size: 0.4rem;
+  letter-spacing: 0.05em;
+}
+.song-card-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.song-card h4 {
+  font-weight: 400;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 0.2rem;
+}
+.song-card p {
+  color: var(--color-text-secondary);
+  font-size: 0.65rem;
+}
+.selection-label {
+  color: var(--color-accent);
+  font-size: 0.6rem;
+}
+.song-card .small-note {
+  font-size: 0.6rem;
+}
+
+/* Footer */
+.site-footer {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-md) var(--page-gutter);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.65rem;
+}
+.site-footer > span:first-child {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
 }

@@ -1,0 +1,78 @@
+/*
+ * FILE: style.css
+ * PURPOSE: Defines the permanent dark theme and base page styling.
+ * RESPONSIBILITIES: Provides reusable colors, spacing, and border radii;
+ * centers the introduction and styles its text.
+ * CONNECTED FILES: Loaded by index.html before responsive.css, which adjusts
+ * these styles for smaller screens.
+ */
+
+/* Theme variables: shared values keep styling consistent across the site. */
+:root {
+  color-scheme: dark;
+
+  --color-background: #111113;
+  --color-background-secondary: #18181b;
+  --color-surface: #202024;
+  --color-surface-raised: #29292e;
+  --color-text-primary: #f2efed;
+  --color-text-secondary: #bcb5b8;
+  --color-accent: #c58e9c;
+  --color-border: #3a353b;
+
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+}
+
+/* Global styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+}
+
+/* Homepage layout */
+.homepage {
+  display: grid;
+  /* Use the small viewport height on mobile, with vh as an older-browser fallback. */
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: var(--space-lg);
+  place-items: center;
+}
+
+.introduction {
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+/* Typography */
+h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.introduction p {
+  margin: var(--space-sm) 0 0;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+}

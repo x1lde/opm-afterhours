@@ -1,0 +1,14 @@
+/*
+ * FILE: responsive.css
+ * PURPOSE: Keeps the page comfortable to read on smaller screens.
+ * RESPONSIBILITIES: Adjusts layout spacing at screen-width breakpoints.
+ * CONNECTED FILES: Loaded after style.css in index.html; reuses its variables
+ * and overrides only the styles that need to change.
+ */
+
+/* Responsive layouts */
+@media (max-width: 480px) {
+  .homepage {
+    padding: var(--space-sm);
+  }
+}

@@ -1,0 +1,79 @@
+/**
+ * FILE: header.js
+ * PURPOSE: Reveals desktop navigation on hover and keeps mobile navigation visible.
+ * RESPONSIBILITIES: Shows floating navigation near the top edge, hides it when
+ * idle, and preserves hovered/focused content. Touch layouts use a sticky header.
+ * CONNECTED FILES: Initialized by main.js; styles live in style.css.
+ */
+
+const HIDE_DELAY_MS = 2000;
+
+/** Initializes responsive navigation without changing music state. */
+export function initializeHeader() {
+  const header = document.getElementById('site-header');
+  const searchToggle = document.getElementById('mobile-search-toggle');
+  const searchField = document.getElementById('header-search');
+  const desktop = window.matchMedia('(min-width: 601px) and (hover: hover) and (pointer: fine)');
+  let timer;
+  let hovered = false;
+  let nearTop = false;
+
+  searchToggle.addEventListener('click', () => {
+    const open = searchField.classList.toggle('is-open');
+    searchToggle.setAttribute('aria-expanded', String(open));
+    searchToggle.setAttribute('aria-label', open ? 'Hide search' : 'Show search');
+  });
+  searchField.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      searchField.classList.remove('is-open');
+      searchToggle.setAttribute('aria-expanded', 'false');
+      searchToggle.setAttribute('aria-label', 'Show search');
+      searchToggle.focus();
+    }
+  });
+
+  function showHeader() {
+    clearTimeout(timer);
+    header.classList.remove('is-hidden');
+    header.inert = false;
+    scheduleHide();
+  }
+
+  function scheduleHide() {
+    clearTimeout(timer);
+    if (!desktop.matches || hovered || nearTop || header.contains(document.activeElement)) return;
+    timer = setTimeout(() => {
+      header.classList.add('is-hidden');
+      header.inert = true;
+    }, HIDE_DELAY_MS);
+  }
+
+  function updateLayout() {
+    hovered = false;
+    nearTop = false;
+    header.classList.toggle('is-floating', desktop.matches);
+    showHeader();
+  }
+
+  document.addEventListener('pointermove', (event) => {
+    if (!desktop.matches || event.pointerType === 'touch') return;
+    const wasNearTop = nearTop;
+    nearTop = event.clientY <= 24;
+    if (nearTop) showHeader();
+    else if (wasNearTop) scheduleHide();
+  });
+  header.addEventListener('pointerenter', () => {
+    hovered = true;
+    showHeader();
+  });
+  header.addEventListener('pointerleave', () => {
+    hovered = false;
+    scheduleHide();
+  });
+  header.addEventListener('focusin', showHeader);
+  header.addEventListener('focusout', () => queueMicrotask(scheduleHide));
+  // Reveal navigation when keyboard users enter through the skip link.
+  document.querySelector('.skip-link').addEventListener('focus', showHeader);
+  desktop.addEventListener('change', updateLayout);
+  updateLayout();
+}

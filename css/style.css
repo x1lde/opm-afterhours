@@ -34,6 +34,7 @@
   --page-width: 1600px;
   --page-gutter: clamp(1.5rem, 3.4vw, 4rem);
   --vinyl-max-size: 380px;
+  --listening-overlay-opacity: 0.74;
   --vinyl-rotation-duration: 10s;
   --lyrics-panel-height: clamp(200px, calc(100svh - 520px), 290px);
 }
@@ -88,7 +89,7 @@ svg {
   position: fixed;
   top: 1rem;
   left: 1rem;
-  z-index: 2;
+  z-index: 12;
   padding: var(--space-xs) var(--space-sm);
   color: var(--color-background);
   background: var(--color-accent);
@@ -134,8 +135,25 @@ svg {
 
 /* Navigation */
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   border-bottom: 1px solid var(--color-border);
   background: #0e0d0f;
+}
+.site-header.is-floating {
+  position: fixed;
+  inset: 0.75rem 0.75rem auto;
+  z-index: 10;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: transform 250ms ease, opacity 250ms ease, visibility 250ms;
+}
+.site-header.is-hidden {
+  transform: translateY(calc(-100% - 1rem));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 .header-inner {
   max-width: var(--page-width);
@@ -202,6 +220,9 @@ svg {
   width: clamp(200px, 22vw, 320px);
   color: var(--color-text-secondary);
 }
+.mobile-search-toggle {
+  display: none;
+}
 .search-field input {
   min-width: 0;
   width: 100%;
@@ -248,11 +269,15 @@ svg {
   flex-shrink: 0;
 }
 .listening-layout {
+  position: relative;
+  isolation: isolate;
+  background: #141215;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 3rem);
   align-items: center;
-  padding: 1rem 0 var(--space-xl);
+  padding: clamp(1.25rem, 3vw, 3rem);
+  margin-bottom: var(--space-lg);
 }
 .listening-layout > *, .artist-section > * {
   min-width: 0;
@@ -265,36 +290,42 @@ svg {
   margin-bottom: var(--space-sm);
 }
 
-/* Independent background visuals: no controls or interaction over the picture. */
-.video-region {
-  padding: var(--space-sm) 0;
-  background: radial-gradient(ellipse at 30% 40%, #292027 0%, transparent 72%);
+/* Full-section decoration: isolated layers never intercept foreground input. */
+.listening-background, .listening-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
-.video-frame {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+.listening-background {
+  z-index: -2;
   overflow: hidden;
   background: #141215;
 }
-.video-frame video, .video-frame .video-fallback {
+.listening-background video, .listening-background .video-fallback {
   position: absolute;
   inset: 0;
-  width: 100%;
+  left: 0;
+  width: 50%;
   height: 100%;
   display: block;
-  border: 0;
-  object-fit: contain;
-  background: #141215;
+  object-fit: cover;
+  object-position: center;
   pointer-events: none;
 }
-.video-frame .video-fallback {
-  object-fit: cover;
+/* A solid charcoal right edge dissolves toward the lyrics and video. */
+.listening-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to left, #111012 0%, #111012 44%, #11101266 66%, transparent 85%);
 }
-.video-frame [hidden] {
+.listening-background [hidden] {
   display: none;
+}
+.listening-overlay {
+  z-index: -1;
+  background: linear-gradient(90deg, #0d0c0f 0%, #181419 65%, #0d0c0f 100%);
+  opacity: var(--listening-overlay-opacity);
 }
 .play-button:not(:disabled), .range-input:not(:disabled) {
   cursor: pointer;
@@ -302,40 +333,9 @@ svg {
 .play-button:not(:disabled):hover {
   background: var(--color-text-primary);
 }
-.video-caption {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  margin-top: var(--space-sm);
-}
-.caption-marker {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 25px;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-sm);
-  color: var(--color-accent);
-  font-size: 0.6rem;
-  flex-shrink: 0;
-}
-.video-caption h3 {
-  font-size: 0.85rem;
-  font-weight: 400;
-}
-.video-caption h3 span {
-  color: var(--color-text-secondary);
-}
-.video-caption p {
-  font-size: 0.7rem;
-  color: var(--color-text-secondary);
-}
-.video-footnote {
-  margin-top: var(--space-lg);
-  font-family: var(--font-serif);
-  font-style: italic;
-  color: var(--color-text-secondary);
-  font-size: 0.95rem;
+.player-status {
+  margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
 }
 
 /* Lyrics: a fixed viewport keeps line-size changes inside the panel. */
@@ -356,9 +356,12 @@ svg {
   overflow-y: auto;
   /* Font changes must not trigger the browser's own scroll-anchor adjustments. */
   overflow-anchor: none;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
   padding-right: 0.7rem;
+}
+.lyrics-scroll::-webkit-scrollbar {
+  display: none;
 }
 .lyric-lines {
   margin: 0;

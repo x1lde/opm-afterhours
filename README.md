@@ -92,25 +92,36 @@ player or subscribes to music state.
 
 ## Layout
 
-The approved arrangement is preserved: video on the left, lyrics in the center,
-vinyl and controls on the right, and artist information and songs below.
-The decorative video stays inside the original responsive 16:9 frame and uses
-`object-fit: contain`. It has no native controls, pointer interaction, or tab
-stop and is hidden from assistive technology. Static cover artwork is its fallback.
-Music controls remain beneath the vinyl; the three-column layout is preserved.
+The listening section uses a full-width, full-height decorative video background
+with `object-fit: cover`. On desktop and tablet, the video is centered within
+the left area; the solid charcoal backdrop behind the vinyl fades toward the
+lyrics. On mobile, the video fills only the lyrics section with centered cover cropping. An isolated stacking context places the noninteractive
+video and static cover fallback behind a charcoal overlay and foreground content.
+Adjust `--listening-overlay-opacity` in `css/style.css` (default `0.74`) to tune
+readability. The video has no controls or tab stop and is hidden from assistive
+technology. Autoplay failures and reduced motion show static cover artwork.
 
-- **Above 1000px:** Three listening columns. Video and vinyl respond to viewport
-  height so the complete interface fits typical laptop screens. Volume sits
-  beside the custom transport buttons; artist information sits beside the cards.
+- **Above 1000px:** Lyrics sit on the left, with a large vinyl and MP3 controls
+  on the right. Volume sits beside the transport buttons.
 - **Up to 1200px:** Spacing condenses for laptops.
-- **Up to 1000px:** Video spans the first row; lyrics and vinyl share the next
-  row. Navigation moves to its own row, and artist details sit above the cards.
-- **Up to 600px:** Regions stack vertically, lyrics use a focusable scrolling
-  area, and song cards form a list. The vinyl stays circular. Transport controls
+- **Up to 1000px:** Lyrics and vinyl retain two foreground columns over the
+  same background, with smaller spacing and vinyl sizing.
+- **Up to 600px:** Lyrics and vinyl stack vertically over the continuous video.
+  The video spans the viewport width behind the lyrics using centered
+  `object-fit: cover`. Its lower edge fades into the solid dark vinyl backdrop.
+  Lyrics scroll independently within a compact viewport. Transport controls
   are at least 44px across, and sliders have a 44px-high touch area.
 
 The page can scroll on tablets, phones, unusually short windows, or when text
 is enlarged. No content is hidden to force the interface into one screen.
+
+On desktop with a mouse, the header floats above the page and hides after
+3.5 seconds of inactivity. Moving to the top edge reveals it; hovering or keyboard
+focus keeps it visible. Mobile and touch layouts keep a persistent sticky header. A compact mobile search
+button reveals the existing search field; catalog search remains unavailable in this demo.
+Reduced motion disables its transition.
+Desktop vinyl size adapts to screen height so typical laptop layouts fit one screen;
+mobile and enlarged text can still scroll naturally.
 
 ## Add local media
 
@@ -361,7 +372,7 @@ the current rotation angle when the motion preference changes.
 - The desktop `.vinyl-stage` rule in `css/responsive.css` also caps diameter by
   column width and viewport height with `clamp()`. It reaches 350px at the tested
   1440×900 viewport and 380px at 1920×1080. Short laptops use a smaller diameter
-  to retain the approved three-column layout and single-screen fit.
+  to balance the two foreground columns on shorter screens.
 - Tablet and mobile size limits remain in `responsive.css`.
 
 ## Run and manually test with VS Code Live Server
@@ -515,7 +526,7 @@ logs during fault tests are network failures, not application exceptions.
 ## Known limitations and unfinished features
 
 - Only Multo is configured. The other 29 tracks and dynamic switching remain future work.
-- Artist information and song-card artwork remain placeholders; no poster is configured.
+- Artist information and song-card artwork remain placeholders; the supplied cover serves as the video poster.
 - Search, genre filtering, favorites/localStorage, and artist navigation remain unimplemented.
 - The 17 timed lines are original demo text with sample timestamps, not Multo lyrics.
 - The original demo timings are not accurate to this MP3. Its roughly four-minute

@@ -13,6 +13,9 @@ import { demoSong } from './data.js';
 import { initializePlayer, subscribeToPlaybackState } from './player.js';
 import { initializeLyrics, loadLyricsForTrack } from './lyrics.js';
 import { initializeBackgroundVideo } from './background-video.js';
+import { initializeHeader } from './header.js';
+
+initializeHeader();
 
 const vinyl = document.getElementById('vinyl-record');
 const vinylArtwork = document.getElementById('vinyl-artwork');

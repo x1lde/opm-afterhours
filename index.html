@@ -20,7 +20,7 @@
     <a class="skip-link" href="#main-content">Skip to listening experience</a>
 
     <!-- Navigation: links and search are reserved for later milestones. -->
-    <header class="site-header">
+    <header id="site-header" class="site-header">
       <div class="header-inner">
         <div class="brand" aria-label="OPM Afterhours">
           <span class="brand-prefix">OPM</span>
@@ -32,7 +32,10 @@
           <a class="navigation-link" role="link" aria-disabled="true">Favorites</a>
           <a class="navigation-link" role="link" aria-disabled="true">About</a>
         </nav>
-        <div class="search-field">
+        <button id="mobile-search-toggle" class="mobile-search-toggle" type="button" aria-label="Show search" aria-expanded="false" aria-controls="header-search">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></svg>
+        </button>
+        <div id="header-search" class="search-field">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></svg>
           <label class="visually-hidden" for="music-search">Search artists and songs (unavailable in prototype)</label>
           <input id="music-search" type="search" placeholder="Search artists, songs…" disabled aria-describedby="prototype-notice">
@@ -53,22 +56,12 @@
 
       <!-- Decorative video: muted and looping, never synchronized with the MP3. -->
       <section class="listening-layout" aria-label="Featured listening experience">
-        <section class="video-region" aria-labelledby="video-heading">
-          <div class="section-heading">
-            <h2 id="video-heading" class="eyebrow">Music video</h2>
-            <span class="small-note">Muted · independent</span>
-          </div>
-          <div class="video-frame">
-            <img id="background-fallback" class="video-fallback" src="assets/covers/multo.jpg" alt="" aria-hidden="true">
-            <video id="background-video" muted loop preload="metadata" playsinline tabindex="-1" aria-hidden="true" hidden></video>
-          </div>
-          <div class="video-caption">
-            <span class="caption-marker" aria-hidden="true">MV</span>
-            <div><h3>Multo <span>— Cup of Joe</span></h3><p id="player-status" role="status" aria-live="polite">Loading MP3 music…</p></div>
-          </div>
-          <p id="background-status" class="video-footnote">Preparing muted visuals…</p>
-          <noscript><p class="small-note">Enable JavaScript to load the MP3 and independent background video.</p></noscript>
-        </section>
+        <div class="listening-background" aria-hidden="true">
+          <img id="background-fallback" class="video-fallback" src="assets/covers/multo.jpg" alt="">
+          <video id="background-video" muted loop preload="metadata" playsinline poster="assets/covers/multo.jpg" tabindex="-1" aria-hidden="true" hidden></video>
+        </div>
+        <div class="listening-overlay" aria-hidden="true"></div>
+        <span id="background-status" hidden>Preparing muted visuals?</span>
 
         <!-- Lyrics: original demo text with sample timings, not Multo's lyrics. -->
         <section class="lyrics-region" aria-labelledby="lyrics-heading" aria-describedby="lyrics-note">
@@ -104,6 +97,8 @@
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
             </button>
           </div>
+          <p id="player-status" class="player-status small-note" role="status" aria-live="polite">Loading MP3 music?</p>
+          <noscript><p class="small-note">Enable JavaScript to load music playback.</p></noscript>
           <!-- Music controls: connected only to the MP3 audio element. -->
           <div class="playback-controls">
             <label class="visually-hidden" for="playback-progress">Playback position</label>

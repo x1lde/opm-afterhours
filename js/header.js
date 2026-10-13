@@ -6,32 +6,18 @@
  * CONNECTED FILES: Initialized by main.js; styles live in style.css.
  */
 
+import { isOverlayOpen } from './overlays.js';
+
 const HIDE_DELAY_MS = 2000;
 
 /** Initializes responsive navigation without changing music state. */
 export function initializeHeader() {
   const header = document.getElementById('site-header');
   const pullTab = document.getElementById('header-pull-tab');
-  const searchToggle = document.getElementById('mobile-search-toggle');
-  const searchField = document.getElementById('header-search');
   const desktop = window.matchMedia('(min-width: 601px) and (hover: hover) and (pointer: fine)');
   let timer;
   let hovered = false;
   let nearTop = false;
-
-  searchToggle.addEventListener('click', () => {
-    const open = searchField.classList.toggle('is-open');
-    searchToggle.setAttribute('aria-expanded', String(open));
-    searchToggle.setAttribute('aria-label', open ? 'Hide search' : 'Show search');
-  });
-  searchField.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      searchField.classList.remove('is-open');
-      searchToggle.setAttribute('aria-expanded', 'false');
-      searchToggle.setAttribute('aria-label', 'Show search');
-      searchToggle.focus();
-    }
-  });
 
   function showHeader() {
     clearTimeout(timer);
@@ -46,8 +32,9 @@ export function initializeHeader() {
 
   function scheduleHide() {
     clearTimeout(timer);
-    if (!desktop.matches || hovered || nearTop || header.contains(document.activeElement) || document.activeElement === pullTab) return;
+    if (isOverlayOpen() || !desktop.matches || hovered || nearTop || header.contains(document.activeElement) || document.activeElement === pullTab) return;
     timer = setTimeout(() => {
+      if (isOverlayOpen()) return;
       header.classList.add('is-hidden');
       header.inert = true;
       pullTab.hidden = false;

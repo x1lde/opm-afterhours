@@ -32,17 +32,16 @@
         <nav class="navigation" aria-label="Main navigation" aria-describedby="prototype-notice">
           <a class="navigation-link is-current" role="link" aria-current="page" aria-disabled="true">Home</a>
           <a class="navigation-link" role="link" aria-disabled="true">Artists</a>
-          <a class="navigation-link" role="link" aria-disabled="true">Favorites</a>
+          <button id="favorites-toggle" class="navigation-link" type="button" aria-label="Open favorites" aria-haspopup="dialog" aria-controls="favorites-dialog" aria-expanded="false">Favorites</button>
           <a class="navigation-link" role="link" aria-disabled="true">About</a>
         </nav>
-        <button id="mobile-search-toggle" class="mobile-search-toggle" type="button" aria-label="Show search" aria-expanded="false" aria-controls="header-search">
+        <button id="mobile-search-toggle" class="mobile-search-toggle" type="button" aria-label="Open search" aria-haspopup="dialog" aria-expanded="false" aria-controls="search-dialog">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></svg>
         </button>
-        <div id="header-search" class="search-field">
+        <button id="desktop-search-toggle" class="search-field" type="button" aria-haspopup="dialog" aria-controls="search-dialog" aria-expanded="false">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></svg>
-          <label class="visually-hidden" for="music-search">Search artists and songs (unavailable in prototype)</label>
-          <input id="music-search" type="search" placeholder="Search artists, songs…" disabled aria-describedby="prototype-notice">
-        </div>
+          <span>Search artists and songs</span>
+        </button>
       </div>
     </header>
 
@@ -60,7 +59,7 @@
           <p class="introduction-note">Stay a little. Find your next favorite.</p>
 
         </div>
-        <p id="prototype-notice" class="prototype-note"><span class="status-dot" aria-hidden="true"></span>Browse artists · search &amp; favorites unavailable</p>
+        <p id="prototype-notice" class="prototype-note"><span class="status-dot" aria-hidden="true"></span>Discover artists, songs, and your favorites</p>
       </div>
 
       <!-- Decorative video: muted and looping, never synchronized with the MP3. -->
@@ -102,7 +101,7 @@
           </div>
           <div class="song-summary">
             <div><h2 id="song-heading" class="serif-heading">Multo</h2><p id="song-artist">Cup of Joe</p></div>
-            <button class="icon-button favorite-button" type="button" disabled aria-label="Add Multo to favorites (unavailable in prototype)">
+            <button id="active-track-favorite" class="icon-button favorite-button favorite-toggle" type="button" data-favorite-type="track" data-favorite-id="cup-of-joe-multo" aria-pressed="false" aria-label="Add Multo to favorites">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
             </button>
           </div>
@@ -134,10 +133,12 @@
           <div class="artist-identity">
             <div class="artist-image-frame"><img id="artist-image" alt="Cup of Joe" hidden><span id="artist-image-placeholder" class="small-note">Photo pending</span></div>
             <h2 id="artist-heading" class="serif-heading" aria-live="polite" aria-atomic="true">Cup of Joe</h2>
+            <button id="artist-favorite" class="icon-button favorite-button favorite-toggle" type="button" data-favorite-type="artist" data-favorite-id="cup-of-joe" aria-pressed="false" aria-label="Add Cup of Joe to favorites"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button>
           </div>
           <p class="artist-biography">Cup of Joe is a Filipino pop-alternative band based in Baguio.</p>
           <ul class="genre-labels" aria-label="Artist genres"><li>OPM</li><li>Pop Alternative</li></ul>
           <p id="catalog-source" class="small-note">No. 1 · <a href="https://billboardphilippines.com/music/news/billboard-philippines-top-opm-artists-h1-2026/">Billboard Philippines · First half of 2026</a></p>
+          <p id="favorites-storage-notice" class="small-note favorites-storage-notice" role="status" aria-live="polite"></p>
           <p id="catalog-scope" class="visually-hidden">Artist order follows Billboard Philippines' first-half 2026 ranking, not a final annual ranking.</p>
         </div>
         <div class="song-collection">
@@ -161,5 +162,33 @@
       </section>
     </main>
 
+    <!-- Native modal makes the background inert; search.js contains keyboard focus. -->
+    <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-heading" aria-describedby="search-scope">
+      <div class="search-heading-row">
+        <div><h2 id="search-heading" class="serif-heading">Find your next favorite.</h2><p id="search-scope" class="small-note">Artists - Billboard Philippines, first half of 2026</p></div>
+        <button id="close-search" class="search-action" type="button" aria-label="Close search">Close</button>
+      </div>
+      <form id="catalog-search-form" class="search-filters" role="search">
+        <label class="visually-hidden" for="catalog-search-query">Search artists, songs, or genres</label>
+        <div class="search-query-row"><input id="catalog-search-query" type="search" placeholder="Artist, song, or genre" autocomplete="off"><button id="clear-search-query" class="search-action" type="button">Clear text</button></div>
+        <div class="search-genre-row"><label for="search-genre">Genre</label><select id="search-genre"><option value="all">All genres</option></select><button id="reset-search-genre" class="search-action" type="button">Reset genre</button><button id="reset-search" class="search-action" type="button">Reset all</button></div>
+      </form>
+      <p id="search-status" class="search-status small-note" role="status" aria-live="polite" aria-atomic="true"></p>
+      <div id="search-results" class="search-results">
+        <p id="search-empty" class="small-note" hidden>No matches found. Try another artist, song, or genre.</p>
+        <section aria-labelledby="search-artists-heading"><h3 id="search-artists-heading" class="eyebrow">Artists</h3><p id="search-artists-empty" class="small-note" hidden>No matching artists.</p><ul id="search-artists" class="search-result-list"></ul></section>
+        <section aria-labelledby="search-tracks-heading"><h3 id="search-tracks-heading" class="eyebrow">Tracks</h3><p id="search-tracks-empty" class="small-note" hidden>No matching tracks.</p><ul id="search-tracks" class="search-result-list"></ul></section>
+      </div>
+    </dialog>
+    <dialog id="favorites-dialog" class="search-dialog favorites-dialog" aria-labelledby="favorites-heading" aria-describedby="favorites-description">
+      <div class="search-heading-row"><div><h2 id="favorites-heading" class="serif-heading">Your favorites.</h2><p id="favorites-description" class="small-note">Artists and songs you want to keep.</p></div><button id="close-favorites" class="search-action" type="button" aria-label="Close favorites">Close</button></div>
+      <p id="favorites-status" class="search-status small-note" role="status" aria-live="polite" aria-atomic="true"></p>
+      <p id="favorites-storage-message" class="favorites-storage-message small-note" role="status" aria-live="polite"></p>
+      <div class="search-results favorites-results">
+        <p id="favorites-empty" class="small-note">No favorites yet. Use the hearts to save artists and songs.</p>
+        <section aria-labelledby="favorite-artists-heading"><h3 id="favorite-artists-heading" class="eyebrow">Favorite artists</h3><p id="favorite-artists-empty" class="small-note">No favorite artists yet. Browse the gallery and save the ones you love.</p><ul id="favorite-artists" class="search-result-list"></ul></section>
+        <section aria-labelledby="favorite-tracks-heading"><h3 id="favorite-tracks-heading" class="eyebrow">Favorite tracks</h3><p id="favorite-tracks-empty" class="small-note">No favorite tracks yet. Save songs with their heart controls.</p><ul id="favorite-tracks" class="search-result-list"></ul></section>
+      </div>
+    </dialog>
   </body>
 </html>

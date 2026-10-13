@@ -163,15 +163,37 @@ async (page) => {
     }));
     check('Selected card retains keyboard focus after same-artist track commit', await test.locator('button[data-track-id="arthur-nery-pagsamo"]').evaluate(el => el === document.activeElement));
     check('Supplied but missing video/artwork cannot stop MP3', await test.evaluate(() => !document.querySelector('audio').paused && document.querySelector('video').hidden && !document.querySelector('#vinyl-artwork-placeholder').hidden));
+    // Search selection is a controlled second-recording transition, not real Tingin.
+    await test.mouse.move(720, 8);
+    await test.locator('#desktop-search-toggle').click();
+    await test.locator('#catalog-search-query').fill('Tingin');
+    await test.waitForFunction(() => !document.querySelector('[data-result-type="track"][data-result-id="cup-of-joe-tingin"]').disabled);
+    await test.locator('[data-result-type="track"][data-result-id="cup-of-joe-tingin"]').click();
+    await test.waitForFunction(() => !document.querySelector('#search-dialog').open && document.querySelector('#song-heading').textContent === 'Tingin' && document.querySelector('audio').currentTime > 0.1);
+    check('Search mock track result uses existing switch and closes on success', await test.evaluate(async () => {
+      const state = (await import('./js/main.js')).getApplicationState();
+      return state.activeTrackId === 'cup-of-joe-tingin' && state.selectedArtistId === 'cup-of-joe' && document.activeElement.id === 'play-pause';
+    }));
+    check('Search mock switch preserves volume and mute', await test.evaluate(() => document.querySelector('audio').volume === 0.31 && document.querySelector('audio').muted));
+    // Favorite playback also uses the same mocked-recording selection flow.
+    await test.evaluate(async () => (await import('./js/favorites.js')).toggleTrackFavorite('cup-of-joe-misteryoso'));
+    await test.mouse.move(720, 8);
+    await test.locator('#favorites-toggle').click();
+    await test.waitForFunction(() => !document.querySelector('[data-favorite-result-id="cup-of-joe-misteryoso"]').disabled);
+    await test.locator('[data-favorite-result-id="cup-of-joe-misteryoso"]').click();
+    await test.waitForFunction(() => !document.querySelector('#favorites-dialog').open && document.querySelector('#song-heading').textContent === 'Misteryoso' && document.querySelector('audio').currentTime > 0.1);
+    check('Favorite mock track loads through existing coordinator and closes', await test.evaluate(async () => (await import('./js/main.js')).getApplicationState().activeTrackId === 'cup-of-joe-misteryoso' && document.activeElement.id === 'play-pause'));
+    check('Favorite mock switch preserves volume/mute and updates active heart', await test.evaluate(() => document.querySelector('audio').volume === 0.31 && document.querySelector('audio').muted && document.querySelector('#active-track-favorite').getAttribute('aria-pressed') === 'true'));
     check('Switches add no media/control listeners', await test.evaluate(before => JSON.stringify(window.listenerCounts) === before, listeners));
     check('Only one audio element and no page reload', await test.evaluate(() => document.querySelectorAll('audio').length === 1 && performance.getEntriesByType('navigation').length === 1));
     check('No unhandled JavaScript exceptions', exceptions.length === 0);
     return { mode: 'CONTROLLED MOCKS: all mock audio URLs serve the same supplied Multo bytes', passed: results.filter(r => r.passed).length, failed: results.filter(r => !r.passed).length, results, exceptions, first };
   } catch (error) {
-    return {phase, error: error.message, results, exceptions, debug: await test.evaluate(async () => ({
-      app: (await import('./js/main.js')).getApplicationState(),
-      player: (await import('./js/player.js')).getPlaybackState(),
-      video: {src: document.querySelector('video').src, hidden: document.querySelector('video').hidden, status: document.querySelector('#background-status').textContent},
+    return {phase, error: error.message, results, exceptions, debug: await test.evaluate(() => ({
+      title: document.querySelector('#song-heading')?.textContent,
+      status: document.querySelector('#player-status')?.textContent,
+      audio: {src: document.querySelector('audio')?.src, ready: document.querySelector('audio')?.readyState},
+      video: {hidden: document.querySelector('video')?.hidden},
     }))};
   } finally {
     await context.close();

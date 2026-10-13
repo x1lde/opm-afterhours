@@ -16,6 +16,11 @@ import { initializeDesktopLayout } from './layout.js';
 import { renderArtistNavigation, renderArtistCatalog, updateTrackCards } from './catalog.js';
 import { validateCatalog, reportCatalogValidation } from './catalog-validation.js';
 import { loadArtwork } from './artwork.js';
+import { initializeSearch } from './search.js';
+import { isOverlayOpen } from './overlays.js';
+import { loadFavorites, subscribeToFavorites, toggleArtistFavorite, toggleTrackFavorite } from './favorites.js';
+import { updateFavoriteControls, updateFavoriteControl } from './favorite-controls.js';
+import { initializeFavoritesView } from './favorites-view.js';
 
 // Browsing an artist must never replace the song someone is already listening to.
 let selectedArtistId = demoSong.artistId;
@@ -24,6 +29,7 @@ let displayedTrackId = null;
 let backgroundTrackId = initialTrackId;
 let selectionVersion = 0;
 const availability = new Map();
+const availabilityRequests = new Map();
 const feedback = document.getElementById('catalog-feedback');
 
 /** Returns a copy of the two independent selection IDs, for UI and browser tests. */
@@ -42,6 +48,7 @@ export function selectArtist(artistId) {
 
 /** Moves only the browsed artist; looping past either end never changes audio. */
 function moveArtist(direction) {
+  if (isOverlayOpen()) return;
   const index = artists.findIndex(artist => artist.id === selectedArtistId);
   const nextIndex = (index + direction + artists.length) % artists.length;
   selectArtist(artists[nextIndex].id);
@@ -50,18 +57,34 @@ function moveArtist(direction) {
 /** Checks only owner-supplied candidates; pending reservations are not requested. */
 async function refreshAvailability(artistId) {
   for (const track of getArtistTracks(artistId)) {
-    if (availability.has(track.id)) continue;
+    if (['available', 'unavailable'].includes(availability.get(track.id))) continue;
     if (!['ready-demo', 'ready'].includes(track.status)) {
       availability.set(track.id, 'unavailable');
       continue;
     }
-    availability.set(track.id, 'checking');
-    checkTrackAvailability(track).then(available => {
-      availability.set(track.id, available ? 'available' : 'unavailable');
+    getCatalogTrackAvailability(track.id).then(() => {
       updateTrackCards(activeTrackId, availability, getPlaybackState());
     });
   }
   updateTrackCards(activeTrackId, availability, getPlaybackState());
+}
+
+/** Shares the existing availability cache with search; no competing playback state. */
+export async function getCatalogTrackAvailability(trackId) {
+  const track = getTrackById(trackId);
+  if (!track || !['ready', 'ready-demo'].includes(track.status)) return false;
+  if (availability.get(trackId) === 'available') return true;
+  if (availability.get(trackId) === 'unavailable') return false;
+  if (!availabilityRequests.has(trackId)) {
+    availability.set(trackId, 'checking');
+    const request = checkTrackAvailability(track).then(available => {
+      availability.set(trackId, available ? 'available' : 'unavailable');
+      availabilityRequests.delete(trackId);
+      return available;
+    });
+    availabilityRequests.set(trackId, request);
+  }
+  return availabilityRequests.get(trackId);
 }
 
 /**
@@ -115,7 +138,9 @@ function applyPlaybackState(state) {
     refreshAvailability(selectedArtistId);
     document.getElementById('song-heading').textContent = track.title;
     document.getElementById('song-artist').textContent = track.artist;
-    document.querySelector('.favorite-button').setAttribute('aria-label', `Add ${track.title} to favorites (unavailable)`);
+    const activeFavorite = document.getElementById('active-track-favorite');
+    activeFavorite.dataset.favoriteId = track.id;
+    updateFavoriteControl(activeFavorite);
     vinyl.setAttribute('aria-label', `Vinyl record for ${track.title} by ${track.artist}`);
     const artwork = document.getElementById('vinyl-artwork');
     artwork.alt = `Cover artwork for ${track.title} by ${track.artist}`;
@@ -131,9 +156,23 @@ function applyPlaybackState(state) {
   updateTrackCards(activeTrackId, availability, state);
 }
 
+loadFavorites();
 reportCatalogValidation(validateCatalog());
 renderArtistNavigation(selectedArtistId);
 renderArtistCatalog(selectedArtistId, activeTrackId, availability);
+initializeSearch({ selectArtist, selectTrack, getAvailability: getCatalogTrackAvailability });
+initializeFavoritesView({ selectArtist, selectTrack, getAvailability: getCatalogTrackAvailability });
+subscribeToFavorites(state => {
+  updateFavoriteControls();
+  const notice = document.getElementById('favorites-storage-notice');
+  if (notice.textContent !== state.message) notice.textContent = state.message;
+});
+document.addEventListener('click', event => {
+  const button = event.target.closest('button.favorite-toggle');
+  if (!button || button.disabled) return;
+  if (button.dataset.favoriteType === 'artist') toggleArtistFavorite(button.dataset.favoriteId);
+  else toggleTrackFavorite(button.dataset.favoriteId);
+});
 initializeHeader();
 initializeDesktopLayout();
 initializeLyrics();
@@ -155,7 +194,7 @@ const swipeSurface = document.getElementById('main-content');
 let swipeStart = null;
 swipeSurface.addEventListener('touchstart', event => {
   swipeStart = null;
-  if (!mobileArtists.matches || event.touches.length !== 1
+  if (isOverlayOpen() || !mobileArtists.matches || event.touches.length !== 1
       || event.target.closest('button, input, select, textarea, a')) return;
   const touch = event.touches[0];
   // Leave the browser's screen-edge back/forward gestures available.
@@ -169,7 +208,7 @@ swipeSurface.addEventListener('touchcancel', () => { swipeStart = null; }, { pas
 swipeSurface.addEventListener('touchend', event => {
   const start = swipeStart;
   swipeStart = null;
-  if (!start || !mobileArtists.matches || event.changedTouches.length !== 1) return;
+  if (isOverlayOpen() || !start || !mobileArtists.matches || event.changedTouches.length !== 1) return;
   const touch = event.changedTouches[0];
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
@@ -177,7 +216,7 @@ swipeSurface.addEventListener('touchend', event => {
       && performance.now() - start.time < 1000) moveArtist(dx < 0 ? 1 : -1);
 }, { passive: true });
 swipeSurface.addEventListener('keydown', event => {
-  if (!mobileArtists.matches || !['ArrowLeft', 'ArrowRight'].includes(event.key)
+  if (isOverlayOpen() || !mobileArtists.matches || !['ArrowLeft', 'ArrowRight'].includes(event.key)
       || event.target.closest('button, input, select, textarea, a, #lyrics-scroll')) return;
   event.preventDefault();
   moveArtist(event.key === 'ArrowLeft' ? -1 : 1);

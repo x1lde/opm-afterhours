@@ -156,6 +156,23 @@
 
 /* Mobile: stack lyrics and vinyl over the same continuous background. */
 @media (max-width: 600px) {
+  .search-dialog {
+    width: calc(100% - 1rem);
+    max-height: calc(var(--search-viewport-height, 100dvh) - 1rem);
+  }
+  .search-heading-row {
+    padding: 0.75rem 0.75rem 0.5rem;
+  }
+  .search-heading-row .serif-heading {
+    font-size: 1.35rem;
+  }
+  .search-filters, .search-status, .search-results {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .search-result-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
   :root {
     --page-gutter: 1.25rem;
   }
@@ -180,7 +197,7 @@
     gap: 0.4rem;
   }
   .brand-prefix {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     margin-bottom: 0;
   }
   .brand-name {
@@ -201,12 +218,6 @@
     border-radius: var(--radius-sm);
     cursor: pointer;
   }
-  .search-field.is-open {
-    display: flex;
-    order: 4;
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
   .navigation {
     justify-content: space-between;
     gap: 0.5rem;
@@ -216,7 +227,7 @@
     place-items: center;
     min-height: 44px;
     min-width: 44px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
   }
   .page-introduction {
     flex-direction: column;

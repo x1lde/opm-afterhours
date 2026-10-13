@@ -7,6 +7,7 @@
 
 import { artists, catalogSource, getArtistById, getArtistTracks } from './data.js';
 import { loadArtwork } from './artwork.js';
+import { createFavoriteControl, updateFavoriteControl } from './favorite-controls.js';
 
 /** Updates gallery labels in place; arrows wrap in the verified catalog order. */
 export function renderArtistNavigation(selectedArtistId) {
@@ -32,6 +33,9 @@ export function renderArtistCatalog(artistId, activeTrackId, availability = new 
   const artist = getArtistById(artistId);
   renderArtistNavigation(artistId);
   document.getElementById('artist-heading').textContent = artist?.name || 'Artist information unavailable';
+  const favorite = document.getElementById('artist-favorite');
+  favorite.dataset.favoriteId = artistId;
+  updateFavoriteControl(favorite);
   document.querySelector('.artist-biography').textContent = artist?.biography || 'Biography pending verification.';
   document.querySelector('.genre-labels').replaceChildren(...(artist?.genres || []).map(tag => {
     const item = document.createElement('li');
@@ -85,7 +89,7 @@ export function renderArtistCatalog(artistId, activeTrackId, availability = new 
     button.setAttribute('aria-describedby', label.id);
     details.append(title, name, duration, label);
     button.append(cover, details);
-    card.append(button);
+    card.append(button, createFavoriteControl('track', track.id));
     return card;
   }));
   updateTrackCards(activeTrackId, availability, playback);
@@ -99,7 +103,7 @@ export function updateTrackCards(activeTrackId, availability, playback = {}) {
     const active = track.id === activeTrackId;
     const state = availability.get(track.id);
     const available = state === 'available';
-    const button = card.querySelector('button');
+    const button = card.querySelector('.song-card-button');
     button.disabled = !available;
     button.setAttribute('aria-pressed', String(active));
     card.classList.toggle('is-selected', active);

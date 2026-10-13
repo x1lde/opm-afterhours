@@ -2,7 +2,8 @@
  * FILE: main.js
  * PURPOSE: Serves as the website's JavaScript ES module entry point.
  * RESPONSIBILITIES: Starts MP3 playback, vinyl/lyrics subscriptions, and an
- * independent muted video controller. Loads the supplied vinyl cover.
+ * independent muted video controller. Validates the catalog, renders the initial
+ * artist, and loads the supplied vinyl cover without adding track switching.
  * CONNECTED FILES: Loaded by index.html; imports demoSong from data.js and
  * initializePlayer and subscribeToPlaybackState from player.js. CSS performs
  * rotation and reduced-motion handling; lyrics.js subscribes only to MP3 state.
@@ -15,7 +16,11 @@ import { initializeLyrics, loadLyricsForTrack } from './lyrics.js';
 import { initializeBackgroundVideo } from './background-video.js';
 import { initializeHeader } from './header.js';
 import { initializeDesktopLayout } from './layout.js';
+import { renderArtistCatalog } from './catalog.js';
+import { validateCatalog, reportCatalogValidation } from './catalog-validation.js';
 
+reportCatalogValidation(validateCatalog());
+renderArtistCatalog(demoSong.artistId, demoSong.id);
 initializeHeader();
 initializeDesktopLayout();
 
@@ -36,6 +41,14 @@ vinylArtwork.addEventListener('error', () => {
   vinyl.setAttribute('aria-label', `Vinyl record for ${demoSong.title} by ${demoSong.artist} with a center artwork placeholder`);
 });
 if (demoSong.coverArt) vinylArtwork.src = demoSong.coverArt;
+// A missing fallback image leaves the existing dark section behind the video.
+const backgroundFallback = document.getElementById('background-fallback');
+backgroundFallback.addEventListener('error', event => {
+  event.target.style.display = 'none';
+});
+if (backgroundFallback.complete && !backgroundFallback.naturalWidth) {
+  backgroundFallback.style.display = 'none';
+}
 
 /**
  * Updates only vinyl state classes, independent of playback controls.

@@ -1,554 +1,316 @@
-﻿# OPM Afterhours
+# OPM Afterhours
 
-OPM Afterhours is a school project celebrating Original Pilipino Music (OPM).
-It uses a permanent dark theme, muted rose accents, editorial serif headings,
-and a responsive listening interface built from HTML, CSS, and vanilla JavaScript.
+OPM Afterhours is a school project for discovering Filipino music through a dark,
+cinematic listening room. It uses HTML5, CSS3, and vanilla JavaScript ES modules.
+Run it with VS Code Live Server. No packages, build tools, frameworks, backend,
+accounts, or database are required.
 
-## Current progress
+## Current milestone: Step 6A
 
-**Steps 1–5.5 are complete. MP3 music and MP4 visuals operate independently.**
-The MP3 is the only music source: it supplies controls, timestamps, duration,
-volume, vinyl motion, and lyric synchronization. Music never autoplays or loops.
-The MP4 is muted, zero-volume, looping decoration with its own controller.
-Audio pausing, seeking, buffering, ending, or failing never controls the video.
-Video state, time, and errors never control music. No timestamps or positions
-are transferred between the media elements.
+Steps 1-5.5 remain working. Step 6A adds the artist/song data architecture:
+10 artists, 30 track slots, and exactly three slots per artist. Only Multo is
+initialized for playback. There is no artist or track switching, catalog search,
+filtering, favorites, or new playback feature. Stop here until Step 6B is approved.
+The existing mobile search button only reveals the disabled demo search field.
 
-The previous YouTube integration was removed because embedding was blocked in
-both automated and local testing. The revised player has no third-party API,
-video IDs, iframe, global ready callback, or external media dependency.
+The MP3 alone controls play/pause, seeking, duration, progress, volume, vinyl
+rotation, and synchronized lyrics. The muted, zero-volume, looping MP4 remains
+independent: pausing or seeking music never pauses or seeks the video.
+All 17 original Multo demo lyric lines and timestamps, and its three supplied
+media paths, are preserved. These are demonstration lyrics, not the song's lyrics.
 
-Lyrics use original demo text and artificial test timestamps, not Multo lyrics
-or official lyric timings. The vinyl uses the supplied local `multo.jpg` cover and
-rotates only while MP3 playback is active. Artist biography, genres, and the
-other two song cards remain demo placeholders. The selected song's
-duration is read from the MP3, never hardcoded. Demo timings were preserved,
-not retimed to the recording. Each next milestone requires approval.
+## Verified ranking and scope
 
-## Technologies
+Original publication: [SB19, BINI, Cup Of Joe, And More Named Billboard Philippines'
+Top 10 Artists Of 2026 (So Far)](https://billboardphilippines.com/music/news/billboard-philippines-top-opm-artists-h1-2026/).
+Publisher: Billboard Philippines. Author: Ralph Regis. Published July 24, 2026;
+verified October 13, 2026. The date was checked in the original page's
+`article:published_time` and `datePublished` metadata.
 
-- **HTML5:** Semantic structure, one primary `<audio>`, and one decorative `<video>`.
-- **CSS3:** Theme, responsive layout, components, and playback-synchronized vinyl.
-- **Vanilla JavaScript (ES6+):** Native ES modules and browser media events.
+This is the publisher's **first-half / mid-year 2026 ranking**, not a final
+full-year ranking and not our own official chart calculation. The article considers
+chart data, streaming, sales, and cultural impact. It does not publish numerical
+weights, a scoring formula, or precise data-tracking cutoffs. `periodStart` and
+`periodEnd` in data.js describe the calendar first half (January-June), not a claim
+about undisclosed chart collection dates.
 
-No frameworks, packages, build tools, Node.js, npm, backend, or database are
-required. The website runs through VS Code Live Server and can be deployed as
-static files with its media assets.
+The exact publisher order matches the proposed shortlist:
 
-## Project structure
+| Position | Artist |
+| --- | --- |
+| 1 | Cup of Joe |
+| 2 | Arthur Nery |
+| 3 | fitterkarma |
+| 4 | Ben&Ben |
+| 5 | Skusta Clee |
+| 6 | SB19 |
+| 7 | IV OF SPADES |
+| 8 | December Avenue |
+| 9 | BINI |
+| 10 | Rob Deniel |
 
-```text
-opm-afterhours/
-├── index.html
-├── README.md
-├── css/
-│   ├── style.css
-│   └── responsive.css
-├── js/
-│   ├── main.js
-│   ├── data.js
-│   ├── player.js
-│   ├── background-video.js
-│   └── lyrics.js
-└── assets/
-    ├── artists/
-    ├── audio/
-    │   └── multo.mp3
-    ├── covers/
-    │   └── multo.jpg
-    └── videos/
-        └── multo.mp4
-```
+The website links the source and labels its period in the existing artist section.
+The linked note's tooltip includes publication details and methodology. Artist
+positions come from this verified publisher list. Featured songs are project
+selections, NOT ranked top-three songs and NOT restricted to 2026 releases.
 
-The supplied MP3, MP4, and cover were preserved. The MP3 already existed in the
-workspace. No audio was downloaded, generated, or extracted for this revision.
-The existing `.git/` folder contains version-control metadata. The ignored
-`.playwright-mcp/` folder contains verification artifacts, not website assets.
-The artist folder remains empty. The developer supplied `assets/covers/multo.jpg`;
-no cover artwork was downloaded or generated.
+## Verified song selections and metadata sources
+
+Biographies are short original factual descriptions. No award or achievement
+claims are included. Genre tags are broad descriptions supported by the sources;
+OPM describes Filipino music rather than one specific musical style.
+`researchSources` in data.js stores the links; `sourceUrls` identifies the sources
+for each artist and selected song. Links verify metadata, not media permission.
+
+| Artist | Three featured slots | Research supporting metadata and titles |
+| --- | --- | --- |
+| Cup of Joe | Multo; Tingin (feat. Janine Teñoso); Misteryoso | [Multo release](https://billboardphilippines.com/music/news/cup-of-joe-summon-the-ghosts-of-their-past-on-new-single-multo-release-2024/), [song coverage](https://billboardphilippines.com/market/chart-beat/all-the-cup-of-joe-songs-on-the-philippines-hot-100-this-week/), [band profile](https://billboardphilippines.com/market/industry-news/cup-of-joe-and-janine-tenoso-enter-billboards-philippines-songs-chart-with-tingin/) |
+| Arthur Nery | Pagsamo; Higa; Binhi | [Viva Artists Agency profile](https://www.vivaartistsagency.ph/artists/arthur-nery) |
+| fitterkarma | Kalapastangan; Pag-Ibig ay Kanibalismo II; maryclaire | [Band and release coverage](https://billboardphilippines.com/music/news/fitterkarma-maryclaire-new-single-2026/) |
+| Ben&Ben | Duyan; Lifetime (Reimagined); Autumn (Reimagined) | [Duyan release](https://billboardphilippines.com/music/news/ben-and-ben-duyan-new-single-release-2026/), [reimagined songs](https://billboardphilippines.com/market/chart-beat/benbens-autumn-reimagined-debuts-on-the-philippines-hot-100/) |
+| Skusta Clee | Since Day One (feat. Flow G); Kalimutan Ka; selection pending | [Ranking article](https://billboardphilippines.com/music/news/billboard-philippines-top-opm-artists-h1-2026/), [Kalimutan Ka recording metadata](https://www.shazam.com/en-us/song/1797062667/kalimutan-ka) |
+| SB19 | DAM; DUNGKA!; VISA | [Group and song coverage](https://billboardphilippines.com/music/news/sb19-bini-billboard-philippines-mid-year-top-10-2026/) |
+| IV OF SPADES | Mundo; Aura; Kabisado | [Band and recording coverage](https://billboardphilippines.com/music/news/iv-of-spades-isang-pag-ibig-unreleased-track/) |
+| December Avenue | Bulong; Saksi Ang Langit; Huling Sandali | [Recording coverage](https://billboardphilippines.com/music/news/december-avenue-to-celebrate-15th-anniversary-with-concert-this-february/) and the ranking article's band description |
+| BINI | Blush; Unang Kilig; Step Back | [Group and Signals tracks](https://billboardphilippines.com/music/news/bini-make-their-mark-on-vevo-studios-with-blush/) |
+| Rob Deniel | Ulap; RomCom; Miss Miss | [Artist interview and song coverage](https://billboardphilippines.com/media-channels/volumes/rob-deniel-on-the-stories-behind-his-biggest-hits-i-like-writing-songs-that-speak-for-my-generation/) |
+
+There are **29 verified titles and one pending-selection placeholder**. Skusta
+Clee's third selection awaits client choice and verification; no fabricated title
+is shown. Of the verified titles, Multo is `ready-demo` and 28 are `pending-media`.
+Verification of a title does not mean its recording is locally available.
 
 ## Files and connections
 
-| File or folder | Purpose |
+| File | Responsibility |
 | --- | --- |
-| `index.html` | Defines hidden primary audio, decorative video/fallback, lyrics, vinyl, accessible music controls, and existing page sections. |
-| `css/style.css` | Contains theme tokens, global styles, typography, desktop layout, components, CSS vinyl grooves, and native video sizing. |
-| `css/responsive.css` | Contains laptop, tablet, and mobile adjustments, viewport-height sizing, and reduced-motion handling. Loads after `style.css`. |
-| `js/main.js` | Independently initializes audio and background visuals, plus vinyl and lyrics subscriptions. |
-| `js/data.js` | Exports independent audio/video paths, cover, identity, and unchanged demo lyric timings. |
-| `js/player.js` | Controls only the MP3 and publishes audio time/state for controls, vinyl, and lyrics. |
-| `js/background-video.js` | Controls silent visual autoplay, looping, fallback, visibility, and reduced motion independently of music. |
-| `js/lyrics.js` | Renders timestamped lines, subscribes to playback time, highlights the current line, manages panel-only following, and handles missing lyrics. |
-| `assets/videos/` | Holds manually supplied, authorized local video files. |
-| `assets/audio/` | Holds manually supplied, authorized MP3 music files. |
-| `assets/artists/` and `assets/covers/` | Reserved for future artist images and cover artwork. |
+| index.html | Existing audio, video, lyrics, vinyl, controls, artist section, and three cards. Contains useful initial text before JavaScript runs. |
+| css/style.css | Dark theme, layers, vinyl, typography, controls, cards, artwork, and source link. |
+| css/responsive.css | Approved desktop/tablet/mobile layouts and reduced-motion rules. |
+| js/data.js | Artists, tracks, sources, lookup helpers, initialTrackId, and demoSong adapter. |
+| js/catalog-validation.js | Pure validation plus nonfatal development warnings. |
+| js/catalog.js | Renders only the initial artist and existing three cards; no selection controls or playback listeners. |
+| js/main.js | Validates, renders the initial catalog, then initializes existing controllers and subscriptions. |
+| js/player.js | The authoritative MP3 controller and playback subscription API. Unchanged in Step 6A. |
+| js/background-video.js | Independent muted autoplay, looping, reduced motion, tab visibility, and fallback. Unchanged in Step 6A. |
+| js/lyrics.js | Timestamp-driven lines, independent scrolling, manual/follow mode. Unchanged in Step 6A. |
+| js/header.js | Existing desktop auto-hide/pull tab and persistent mobile header behavior. |
+| js/layout.js | Budgets desktop vinyl size using available height and surrounding content. |
+| tests/catalog-tests.js | Browser-only validation tests; never imported by the production entry point. |
 
-`main.js` imports `demoSong` from `data.js` and `initializePlayer` from
-`player.js`. These files use native ES modules. Playback variables stay private
-inside the controller; there are no application globals or inline event handlers.
-`main.js` also imports `initializeLyrics` and `loadLyricsForTrack` from `lyrics.js`.
-It initializes `background-video.js` separately; that module never imports the
-player or subscribes to music state.
-
-## Layout
-
-The listening section uses a full-width, full-height decorative video background
-with `object-fit: cover`. On desktop and tablet, the video is centered within
-the left area; the solid charcoal backdrop behind the vinyl fades toward the
-lyrics. On mobile, the video fills only the lyrics section with centered cover cropping. An isolated stacking context places the noninteractive
-video and static cover fallback behind a charcoal overlay and foreground content.
-Adjust `--listening-overlay-opacity` in `css/style.css` (default `0.74`) to tune
-readability. The video has no controls or tab stop and is hidden from assistive
-technology. Autoplay failures and reduced motion show static cover artwork.
-
-- **Above 1000px:** Lyrics sit on the left, with a large vinyl and MP3 controls
-  on the right. Volume sits beside the transport buttons.
-- **Up to 1200px:** Spacing condenses for laptops.
-- **Up to 1000px:** Lyrics and vinyl retain two foreground columns over the
-  same background, with smaller spacing and vinyl sizing.
-- **Up to 600px:** Lyrics and vinyl stack vertically over the continuous video.
-  The video spans the viewport width behind the lyrics using centered
-  `object-fit: cover`. Its lower edge fades into the solid dark vinyl backdrop.
-  Lyrics scroll independently within a compact viewport. Transport controls
-  are at least 44px across, and sliders have a 44px-high touch area.
-
-The page can scroll on tablets, phones, unusually short windows, or when text
-is enlarged. No content is hidden to force the interface into one screen.
-
-On desktop with a mouse, the header floats above the page and hides after
-2 seconds of inactivity. A small pull tab marks the hidden navigation at the top
-edge; hovering, clicking, or focusing it reveals the header. Hovering or keyboard
-focus keeps it visible. Mobile and touch layouts keep a persistent sticky header. A compact mobile search
-button reveals the existing search field; catalog search remains unavailable in this demo.
-Reduced motion disables its transition. The footer has been removed.
-Desktop vinyl size adapts to screen height so typical laptop layouts fit one screen;
-mobile and enlarged text can still scroll naturally.
-
-## Add local media
-
-1. Place an authorized MP3 at `assets/audio/multo.mp3` for actual music.
-2. Place an authorized MP4 at `assets/videos/multo.mp4` for silent visuals.
-3. Confirm the configuration in `js/data.js`:
-
-```javascript
-export const demoSong = Object.freeze({
-  id: 'cup-of-joe-multo',
-  title: 'Multo',
-  artist: 'Cup of Joe',
-  audioSrc: 'assets/audio/multo.mp3',
-  videoSrc: 'assets/videos/multo.mp4',
-  coverArt: 'assets/covers/multo.jpg',
-});
+```text
+assets/
+  audio/multo.mp3
+  videos/multo.mp4
+  covers/multo.jpg
+  artists/             (reserved for owner-supplied images)
 ```
 
-Paths are relative to `index.html`. Use matching capitalization for static hosts.
-Supply the media at those paths or update `audioSrc`/`videoSrc` and reload.
-Keep the existing original `lyrics` array when editing this configuration.
-Dynamic song switching is not implemented. A missing MP3 disables music with a
-path-specific message; a missing MP4 displays artwork without affecting music.
+No media was downloaded, fabricated, replaced, or extracted in Step 6A. Other
+paths are predictable reservations, not files that claim to exist. No new asset
+folder is required until its authorized content is provided.
 
-Use a browser-compatible MP3 for music. For visuals, use **MP4 with H.264/AVC video**, with
-metadata at the beginning of the file for quicker loading. An `.mp4` extension
-alone does not guarantee compatible codecs. See the
-[MDN web video codec guide](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Video_codecs).
-The video soundtrack stays muted regardless of its encoding. No downloading,
-conversion, or audio-extraction tools are part of this project.
+## Catalog data structure
 
-### Artwork and visual fallback
+An artist references songs through `trackIds`; each song references its owning
+artist through `artistId`. IDs are stable lowercase hyphenated strings. Titles
+and names are display labels, so renaming a label does not require changing an ID.
+The order of `trackIds` determines card order, not chart position.
 
-The vinyl cover is configured by `demoSong.coverArt` in `js/data.js`. `main.js`
-reveals it only after the image loads successfully, keeping an accessible labeled
-placeholder if loading fails. The circular center label clips the square image
-and rotates together with its parent record. Song-card artwork remains a
-placeholder; updating cards or switching songs is outside this milestone.
+### Artist schema
 
-The decorative fallback image in `index.html` uses the supplied `multo.jpg`.
-It appears instead of the video when motion is disabled or visuals are unavailable.
-No new poster asset or posterSrc setting is required.
+| Property | Type | Meaning |
+| --- | --- | --- |
+| id | string | Unique artist identifier. |
+| name | string | Verified display name. |
+| rank | positive integer or null | Position in the verified source; null for unranked additions. |
+| biography | string or null | Short paraphrase; empty/null uses a neutral UI fallback. |
+| imageSrc | string or null | Expected local artist image path; not loaded in this milestone. |
+| genres | string array | Broad descriptive tags; empty is allowed. |
+| trackIds | three distinct strings | IDs resolving to exactly three owned tracks. |
+| sourceUrls | HTTPS string array | Research attribution for the artist description. |
 
-## How the playback controller works
+### Track schema
 
-### Initialization
+| Property | Type | Meaning |
+| --- | --- | --- |
+| id | string | Unique track or pending-slot identifier. |
+| artistId | string | An existing artist's ID. |
+| title | string or null | Verified title; null only for pending selection. |
+| status | string | ready-demo, pending-media, or pending-selection. |
+| audioSrc | string or null | Local assets/audio/*.mp3 path, or unprovided media. |
+| backgroundVideoSrc | string or null | Local assets/videos/*.mp4 path. |
+| coverArt | string or null | Local assets/covers/ image path. |
+| lyrics | array | Objects with time (seconds) and text; empty means unavailable. |
+| releaseYear | optional integer | Only include when verified; Multo's year is 2024. |
+| genres | optional string array | Track-specific tags; empty is allowed. |
+| featuredArtists | optional string array | Verified featured credits; owning artist remains unchanged. |
+| sourceUrls | HTTPS string array | At least one source for each selected song. |
 
-The primary source is one `<audio id="music-audio" preload="metadata" hidden>`.
-Its source comes from `demoSong.audioSrc`. There is no automatic music playback,
-looping, native audio UI, or fabricated duration; existing custom controls operate it.
+`createTrack()` fills predictable paths and empty lyrics. Artist entries and
+explicit track calls remain in data.js so beginners can see the relationships.
+`getArtistById()` and `getTrackById()` return null for unknown IDs;
+`getArtistTracks()` returns an empty list for an unknown artist.
 
-`initializePlayer(song)` reuses one initialization promise. It binds each listener
-once, sets the initial volume, and checks the file with an HTTP HEAD request.
-HEAD checks availability without downloading a second copy. A 404 produces an
-explicit instruction to add the configured MP3. Servers that do not support HEAD
-can still let the audio attempt loading.
+`initialTrackId` remains `cup-of-joe-multo`. `demoSong` derives from that catalog
+record and supplies the existing controllers' `artist` and `videoSrc` properties.
+`videoSrc` aliases `backgroundVideoSrc`; there are no duplicated source paths.
+The original `initializePlayer()`, `getPlaybackState()`, and
+`subscribeToPlaybackState()` APIs are preserved.
 
-The controller assigns `audio.src` and calls `audio.load()`. Custom controls
-stay disabled until `loadedmetadata`. File checks and metadata loading have
-15-second timeouts so initialization cannot leave the page loading indefinitely.
+## Adding an artist or track later
 
-### Events and controls
+1. Verify the display name and write a short sourced biography. Add research links.
+2. Add an artist object with a unique ID. Use rank null unless a matching ranking
+   source actually supports its position; do not extend the verified top-ten list
+   by inventing positions. This milestone retains exactly the current ten artists.
+3. Add exactly three track entries with that artistId. For each selected recording,
+   verify its title/version and featured credits. Add a research source URL.
+4. Put the three track IDs in the artist's trackIds array, in display order.
+5. Use pending-selection and title null for an unchosen slot. Use pending-media
+   for a verified recording whose authorized files are not supplied yet.
+6. Run the validation tests. Data additions do not activate navigation or switching.
 
-- **Play/pause:** The custom button calls `audio.play()` or `audio.pause()`.
-  The `play`, `playing`, and `pause` events update status and the icon. The
-  promise returned by `play()` is caught so a browser refusal produces a message,
-  not an unhandled rejection. Recoverable refusals allow another attempt.
-- **Progress:** `timeupdate` reads `audio.currentTime`; `loadedmetadata` and
-  `durationchange` read `audio.duration`. The controller formats the time and
-  sets the progress range maximum to the actual duration. There is no polling
-  interval or independently advancing clock.
-- **Seeking:** Dragging previews a position without event updates overwriting
-  the slider. On release, the controller sets only `audio.currentTime`. `seeking`
-  and `seeked` report the actual result. Unknown or infinite duration becomes
-  zero in state, displays `--:--`, and disables seeking safely.
-- **Volume:** The custom slider uses 0–100; `audio.volume` uses 0–1. The controller
-  converts between them. `volumechange` also reflects native changes and mute.
-  Selecting a positive volume unmutes the media.
-- **Buffering:** `waiting` and `stalled` report unavailable MP3 data while
-  playing. A warning appears after 20 seconds; `playing` clears the warning.
-- **Ended:** `ended` updates the state and offers Play to replay. The file does
-  not loop automatically.
-- **Errors:** `error` distinguishes interrupted loading, network failure,
-  decoding/corruption, and unsupported formats. Fatal failures pause audio and
-  disable music controls. Messages use music status, never background-video status.
+Example reserved entry:
 
-Previous, next, favorites, search, and navigation remain unavailable. Background
-video events never enter the music controller or change its error state.
+```javascript
+createTrack('artist-id-verified-song', 'artist-id', 'Verified Song Title', [sourceUrl])
+```
 
-### Interface for future milestones
+For a slot awaiting selection:
 
-`getPlaybackState()` accepts no arguments and returns a copy containing:
+```javascript
+createTrack('artist-id-slot-3', 'artist-id', null)
+```
 
-| Property | Meaning |
-| --- | --- |
-| `trackId` | Current configured song ID. |
-| `status` | `unstarted`, `loading`, `starting`, `playing`, `paused`, `buffering`, `seeking`, `ended`, or `error`. |
-| `ready` | Whether custom controls can be used. |
-| `currentTime` | Actual MP3 time in seconds. |
-| `duration` | Actual finite MP3 duration in seconds, or 0 while unknown. |
-| `volume` | Volume percentage, 0–100. |
-| `muted` | Whether native media mute is active. |
-| `seeking` | Whether the media is currently seeking. |
-| `buffering` | Whether playback is waiting for video data. |
-| `isActivelyPlaying` | Confirmed advancing playback with no pause, seek, buffering, ended state, or error; used for vinyl motion. |
-| `selectedSong` | A copy of the selected track configuration. |
-| `error` | An explanatory error string, or `null`. |
+A pending slot displays as a numbered slot with a selection-pending label, never
+as a released song. Once chosen, verify it, assign its final stable track ID, update
+the matching artist reference, and add the real title and source. Changing status
+alone does not make playback available; Step 6A loads only Multo.
 
-`subscribeToPlaybackState(callback)` immediately delivers a snapshot and then
-delivers copies after media updates. It returns an unsubscribe function. The
-vinyl uses one subscription in `main.js`; it does not add media listeners or
-control playback. `lyrics.js` uses another subscription to the same controller
-and compares its timestamps with `currentTime`. No second player or media
-listeners are created for lyrics. Every value comes from audio, never video.
+## Adding authorized media and timestamped lyrics
 
-## Independent background video (Step 5.5)
+Provide files only when the owner has permission to use them. Reserve paths as:
 
-`background-video.js` reads only the video path and visual DOM elements. It never
-imports `player.js`, observes MP3 state, or copies timestamps. A different video
-edit or intro is acceptable: its picture is atmospheric, not a synchronized performance.
+- Artist photo: assets/artists/<artist-id>.jpg
+- Audio: assets/audio/<track-id>.mp3
+- Decorative video: assets/videos/<track-id>.mp4
+- Cover: assets/covers/<track-id>.jpg
 
-The video is always muted and zero-volume, with `loop`, `playsinline`, and
-`preload="metadata"`. A volumechange listener re-enforces silence. After metadata
-loads, the controller attempts muted autoplay. Successful playing reveals the
-picture; browser refusal, buffering, missing/unsupported video, or other errors
-show static cover artwork with a visual-only message. MP3 controls stay usable.
+Keep Multo's existing shorter filenames unchanged. Paths are relative to index.html
+and case-sensitive on many hosts. Use compatible MP3 audio and H.264 MP4 video.
+Supply an authorized jpg, jpeg, png, or webp image. Do not create dummy media files.
+A null path denotes unprovided media. A pending-media path is a reservation and
+is not requested by the catalog UI. Artist images are stored for future use.
 
-Hidden documents and reduced-motion preferences pause visuals and show artwork.
-Visible pages without reduced motion may resume silent playback if allowed.
-Reduced motion at startup avoids even requesting the MP4 until motion is allowed.
-Page hide/show handles returning to the document. Initialization, source loading,
-and pending play attempts are guarded against duplicates. Correcting a failed
-video requires reloading; blocked autoplay can be retried on a later visibility
-or preference change. These actions never play, pause, or seek the MP3.
-
-## Timestamp-synchronized lyrics (Step 5)
-
-### Data and authorized content
-
-Each song can have a `lyrics` array in `js/data.js`. Every entry contains a
-numeric start time in seconds and the text shown for that line:
+Edit a track's lyrics array using authorized text and real timestamps in seconds:
 
 ```javascript
 lyrics: [
-  { time: 2, text: 'Sa tahimik na daan' },
-  { time: 6, text: 'May himig ang mga ilaw' },
-  { time: 10, text: 'Dito muna tayo, sa pagitan ng gabi' },
+  { time: 2, text: 'First authorized line' },
+  { time: 6.5, text: 'Next authorized line' },
 ]
 ```
 
-The current track has 17 original demonstration lines at sample timestamps from
-2 to 335 seconds. These do not correspond to the song's actual words. The panel
-explicitly says **Original demo text · not Multo lyrics** and **Demo timings**.
-No song lyrics were searched for, scraped, or copied.
+Timestamps must be finite numbers, nonnegative, and strictly increasing. Use an
+empty array when lyrics are unavailable; never invent timings for a real recording.
+The exception already preserved here is Multo's explicitly labeled presentation
+demo. Its 17 lines run from 2 to 335 seconds, beyond this roughly four-minute MP3;
+the last entries cannot be reached and are not silently retimed.
 
-To add authorized lyrics later, supply text that is authorized for use and
-measure each line's start time against the exact local MP3 recording. Use
-nonnegative seconds and readable strings. The renderer sorts a copy of the
-array and ignores malformed entries; it does not modify the data file. An
-empty or absent array produces **Lyrics unavailable**.
+## Validation and safe rendering
 
-### Synchronization and lifecycle
+`validateCatalog()` collects readable errors and returns valid, errors,
+artistCount, and trackCount. It accepts optional arrays for testing and does not
+throw on malformed arrays or records. It checks:
 
-`initializeLyrics()` binds panel controls and one playback subscription once.
-`loadLyricsForTrack(trackId, lines)` clears previous nodes, resets the active
-index and following mode, and loads a track's array. It can support future song
-switching, but it does not select a song or control either media element.
-Lyrics for a different track ID are hidden until matching data is loaded.
+- Unique nonempty artist and track IDs; valid names and selected-song titles.
+- Existing artist references, exactly three distinct track references per artist,
+  matching ownership, and exactly one artist reference per track.
+- Expected local media folders/extensions and string-or-null paths; no traversal.
+- Explicit known statuses; unselected slots must have null titles and empty lyrics.
+- Numeric, nonnegative, strictly increasing lyric times and nonempty line text.
+- Basic biography, rank, genre, release-year, and research-link types.
 
-The active line is the latest entry whose `time` is less than or equal to the
-controller's `currentTime`. Before the first timestamp, no line is active.
-A simple backward scan finds the correct line after both forward and backward
-seeking. Returning to zero clears the highlight because this demo starts at two
-seconds. Pausing preserves the line; ending retains the final reached line.
+`reportCatalogValidation()` logs warnings only for invalid data. It does not stop
+the working player. Successful validation does not prove that a URL is factual,
+that a file exists, or that media is licensed: research and supplied assets are
+separate responsibilities. The test suite asserts the milestone's 10/30 capacity.
 
-Buffering keeps the current highlight steady. An explicit seek is allowed to
-update it even while buffering. An error preserves the current line rather
-than pretending the clock advances. Updates come from the existing native-media
-subscription: there are no new polling timers or animation loops.
+The renderer uses textContent and creates DOM elements rather than injecting HTML.
+Missing biographies use a neutral note; absent genres display no tags. Missing
+covers keep labeled placeholders. A failed fallback image leaves the dark backdrop.
+Cards remain plain noninteractive list items with explicit pending-media labels.
+Render the initial cards BEFORE initializePlayer(), because the player retains
+the selected-song-duration node. The renderer is groundwork, not a switching API.
 
-Only a changed active index updates the old/new line's class and `aria-current`.
-Unchanged indexes do not scroll or rebuild the list. The lyrics region has no
-live announcement for every line; it remains keyboard-accessible for reading.
+## Running and checking the project
 
-### Automatic scrolling and manual following
+Open index.html with VS Code Live Server. Music starts paused; muted decorative
+video may autoplay. Press Play and use the existing MP3 controls. Lyrics and vinyl
+observe MP3 playback. Pause/seek the MP3 and confirm the video continues on its
+own clock. Toggle reduced motion to see stationary decoration with music available.
+Scroll inside the lyrics to suspend following; Follow lyrics resumes it.
 
-The panel has a fixed responsive height, so changing line size does not move the
-video or vinyl. Internal padding lets the first and last lines reach its center.
-`panel.scrollTo()` uses panel coordinates, never `scrollIntoView()` on a lyric,
-so automatic following does not scroll the webpage.
+To run the dependency-free catalog tests in the browser developer console:
 
-When a line changes, it is centered with smooth scrolling. A delegated
-`transitionend` event makes a final centering adjustment after its font size
-settles. A single ResizeObserver recenters after panel resizing. Reduced-motion
-preferences disable lyric transitions and use immediate scrolling; changing the
-preference also stops smooth movement without affecting music playback.
+```javascript
+const { runCatalogTests } = await import('./tests/catalog-tests.js');
+console.table(runCatalogTests().results);
+```
 
-Wheel scrolling, touch scrolling, scroll keys, and scrollbar presses suspend
-following and stop pending smooth scrolling. **Follow lyrics** is a keyboard-
-accessible toggle with `aria-pressed`; the adjacent status distinguishes
-**Following** and **Manual scrolling**. Press it to resume following the current
-line. Manual mode lasts until the user resumes or a new array is loaded; no
-timer fights the user's scroll position. Browser scroll anchoring is disabled
-inside this panel to prevent font changes from moving manual scroll positions.
+This test file does not run on ordinary visits and never modifies shipped data;
+malformed cases use cloned arrays. Do not add production controls to run tests.
 
-The height token is `--lyrics-panel-height` in `style.css`; the mobile override
-is in `responsive.css`. Existing active/inactive typography remains 30–36px and
-18px on desktop, with natural wrapping, no highlight background, and no glow.
+## Step 6A verification performed
 
-## Playback-synchronized vinyl (Step 4)
+- Shipped catalog: 10 unique artists, 30 unique track/slot entries, three references
+  per artist, all ownership/reference checks resolved; zero validation errors.
+- All 26 catalog tests passed, including duplicate IDs, missing/foreign references,
+  orphan tracks, invalid statuses/paths, unsorted and invalid timestamps, dishonest
+  placeholders, missing source links, and safe absent optional metadata.
+- Original demo lyric text/times were compared against the earlier Git version:
+  all 17 unchanged. Existing supplied media paths were also checked unchanged.
+- Playwright/Chromium used actual supplied MP3 and MP4. MP3 play/pause and forward
+  seek to 60 seconds/backward seek to 6 seconds passed. Vinyl ran during confirmed
+  playing and paused with audio; seeks updated the corresponding demo lyric line.
+  Pausing/seeking MP3 left the muted video advancing independently.
+- Repeated audio, lyrics, and video initialization retained the same registered
+  listeners: one listener per media/control event on the inspected ID'd elements.
+- Separate simulated missing MP3, MP4, and cover responses showed safe errors or
+  placeholders. Missing MP3 did not stop real video; missing MP4/cover did not stop
+  actual audio playback. No unhandled JavaScript exceptions in these fault cases.
+- A missing-biography/empty-genres renderer check displayed a neutral fallback.
+- Reduced-motion emulation paused video and vinyl and showed fallback artwork.
+- Eight viewport checks: 1920x1080, 1440x900, 1366x768, 1280x720, 1024x640,
+  768x1024, 390x844, and 320x640. Three cards remained present with no horizontal
+  overflow. Typical desktop sizes fit; the short 1024x640 case used about 12px of
+  vertical scrolling. Mobile/tablet retain natural document scrolling.
+- 1920x972 with 125% CSS scaling fit the artist section and cards inside the page.
+- Normal browser console inspection reported zero errors and warnings. Fault
+  contexts had no page exceptions; simulated HTTP 404s are expected network errors.
 
-The controller's existing audio listeners update `isActivelyPlaying`. A `play`
-event alone does not start rotation: `playing` confirms playback, while advancing
-`timeupdate` values can confirm resumed playback after seeking. A seek jump alone
-is not treated as progression.
+Tests used a local temporary static HTTP server. For the seek regression, a
+Playwright route served the actual unchanged MP3 bytes with HTTP byte ranges,
+because Python's simple server does not support reliable ranged media seeking.
+This is a test harness only; no server code or dependency was added to the project.
+Live Server remains the intended workflow. These checks do not claim tests on
+physical phones, every browser, or a full assistive-technology audit.
 
-| Playback condition | Vinyl behavior |
-| --- | --- |
-| Loading, unavailable, or starting | Stationary. |
-| Confirmed playing | Rotates clockwise at a constant speed. |
-| Paused | Freezes at its current angle. |
-| Waiting/buffering or stalled | Freezes until playback resumes. |
-| Seeking | Freezes; resumes after playing or confirmed progression. |
-| Ended or error | Stops. |
-| Reduced-motion preference | Stays stationary while MP3 music still works. |
+## Known limitations and client decisions
 
-The subscriber toggles `.is-playing` and `.is-paused`. CSS changes only
-`animation-play-state` between `running` and `paused`; the same animation remains
-attached, preserving the current angle when paused and resumed. A linear
-`vinyl-rotation` keyframe makes one turn every ten seconds. There is no JavaScript
-rotation loop or second playback controller.
-
-The `.vinyl-stage` wrapper clips the rotating square's transparent corners to
-the visible circle. This prevents transformed bounds from causing mobile
-horizontal scrolling. The cover and grooves stay centered, with no tonearm,
-glow, or added decorations.
-
-The reduced-motion media query in `css/responsive.css` pauses the animation,
-including when `.is-playing` is set. It never changes music state. It also keeps
-the current rotation angle when the motion preference changes.
-
-### Change size or speed
-
-- Change `--vinyl-rotation-duration` in `css/style.css` to adjust speed; the
-  current value is `10s`. Keep a constant linear animation.
-- Change `--vinyl-max-size` in `css/style.css` to adjust the maximum diameter;
-  the current value is `380px`.
-- The desktop `.vinyl-stage` rule in `css/responsive.css` also caps diameter by
-  column width and viewport height with `clamp()`. It reaches 350px at the tested
-  1440×900 viewport and 380px at 1920×1080. Short laptops use a smaller diameter
-  to balance the two foreground columns on shorter screens.
-- Tablet and mobile size limits remain in `responsive.css`.
-
-## Run and manually test with VS Code Live Server
-
-1. Open `D:\opm-afterhours` in Visual Studio Code.
-2. Install Live Server by Ritwick Dey if needed.
-3. Right-click `index.html` and choose **Open with Live Server**.
-4. Wait for music readiness and MP3 duration. Music stays paused; silent video
-   may already be playing. Reduced motion displays artwork instead.
-5. Press Play, hear the MP3, and watch its progress, vinyl, and demo lyric updates.
-   Pause music and confirm that the video continues independently.
-6. Seek music to 60 seconds, then ten. Check the clock and lyrics; the visual
-   must not jump to either music position.
-7. Adjust volume, including zero volume. Only the MP3 should be audible.
-8. Test seeking and volume with keyboard arrow keys. Video has no controls.
-9. Resize to desktop and mobile widths and check visibility and wrapping.
-10. Temporarily change `audioSrc` or `videoSrc` to a missing path and reload.
-    Check independent error handling, then restore the configuration. Keep files intact.
-11. Play and pause to inspect vinyl motion. It should freeze at the same angle,
-    and seeking should pause rotation until active playback resumes.
-12. Enable reduced motion in the operating system or browser's developer tools:
-    video and vinyl should become stationary while music remains usable.
-13. Watch the demo lyrics change at two and six seconds. Seek to ten, sixty,
-    and 225 seconds and check the corresponding highlighted line. Seek to zero
-    and confirm that no line is active.
-14. Scroll inside the lyrics panel to enter manual mode. Press **Follow lyrics**
-    to resume centering. With reduced motion enabled, scrolling should be immediate.
-
-Use HTTP through Live Server rather than opening a `file://` URL: ES modules
-and the file availability check require a local server. Live Server is a
-development tool, not a dependency shipped with the website.
-
-## Earlier milestone verification
-
-The following Step 3–5 results describe the earlier video-driven architecture.
-Current MP3/independent-video results are recorded under Step 5.5 below.
-
-### Step 3 verification (native-video revision)
-
-Actual tests used the existing supplied MP4 through the running Live Server at
-`http://127.0.0.1:5500/index.html`:
-
-- Metadata loaded: 1280×720 picture, approximately 345.21 seconds (displayed 5:45).
-  These values are observations, not hardcoded song data.
-- Play advanced actual media time; pause stopped it and updated the button.
-- Custom and native seeking updated video time and displayed progress.
-- Custom volume, native volume, native mute, and unmuting stayed synchronized.
-- Fullscreen entry and exit succeeded, and the real ended event updated state.
-- Repeated initialization still left one video and one listener per media event.
-- Native playback produced no JavaScript console errors. Vinyl and lyrics stayed static.
-
-Fault-injection tests separately verified a simulated HTTP 404, invalid MP4
-content, metadata timeout, a rejected `play()` promise, and infinite duration.
-Each produced the expected message/control state with no unhandled JavaScript
-exceptions. Missing-file HTTP requests may produce an expected browser network
-404 log; that is different from an application exception.
-
-Layout checks at 1280×720, 1366×768, 1440×900, 1920×1080, 768×1024, 390×844,
-and 320×640 preserved 16:9 frames and circular vinyl with no horizontal overflow.
-The tested desktop sizes still fit on one screen. Source checks found no obsolete
-iframe API, callbacks, player instances, video IDs, or fallback links in HTML,
-CSS, or JavaScript.
-
-An initial seek test on Python's basic temporary server did not succeed because
-that server did not return byte ranges. Live Server returned HTTP 206 and passed
-the actual seek tests. A deployed static host should support byte-range requests
-for reliable seeking. No server implementation was added to the project.
-
-Physical mobile devices, all browsers, a full screen-reader audit, and caption
-support were not tested. Current supplied assets include no caption file.
-
-### Step 4 verification
-
-Actual local-video tests through Live Server passed rotation during playing,
-exact angle retention during pause, timeline continuity on resume, stationary
-paused seeking, freeze/resume during active seeking, and stopping at the real
-ended event. Reduced-motion emulation froze the record while actual media time
-continued to advance; restoring motion kept the animation timeline.
-
-Injected `waiting`, `playing`, and `error` events tested buffering freeze,
-recovery, and error stops. A naturally occurring network-buffering interruption
-was not reproduced. Fault-injected missing and invalid videos stayed stationary;
-a missing cover showed the labeled placeholder without a broken image.
-
-Repeated initialization retained one listener per media event. Subscription
-tests verified immediate delivery, updates, and unsubscribe behavior. Responsive
-checks at 1920×1080, 1440×900, 1366×768, 1280×720, 1024×768, 768×1024, 390×844,
-and 320×640 included a 45-degree rotation to expose possible overflow. Every
-tested record remained circular, centered within its column, clear of controls,
-and free from horizontal scrolling. The tested desktop layouts still fit one
-screen. Physical-device motion preferences and other browsers remain untested.
-The final normal-playback browser run reported no JavaScript console errors.
-
-### Step 5 verification
-
-Actual MP4 playback changed the highlighted line at the first two demo timestamps.
-Paused seeks verified all 17 exact sample boundaries, forward/backward changes,
-zero reset, and the last line. Pause retention and the real ended event passed.
-First/last lines were centered, and unchanged timestamp updates produced no lyric
-DOM mutations. All checks used the existing controller through Live Server.
-
-Wheel and keyboard scrolling suspended following, the follow button restored it,
-and manual positions were preserved while highlights changed. Reduced-motion
-emulation removed font transitions and centered immediately. Missing-array and
-reload tests verified fallback, clearing, and restoration. Injected buffering
-events preserved the line and recovery selected the current time; a naturally
-occurring network-buffering interruption was not reproduced.
-
-CDP listener inspection confirmed one listener per media/panel/control event
-after repeated initialization. Source inspection confirmed no added lyric timers
-or animation loops. Accessibility references resolved, the active line used
-`aria-current`, and no lyrics live region was present.
-
-Eight viewport checks (1920×1080 through 320×640) found no horizontal overflow,
-30–36px active type on desktop, and centered lines. Document scroll position and
-video/vinyl positions remained unchanged during automatic following. Desktop
-and mobile screenshots were reviewed. No JavaScript console errors were reported.
-Physical touch devices, all browsers, and a full screen-reader audit remain untested.
-
-### Step 5.5 verification
-
-Actual tests through Live Server used the existing supplied MP3 and MP4:
-
-- MP3 metadata reported approximately 240.16 seconds (4:00); MP4 duration was
-  approximately 345.21 seconds (5:45). Neither is hardcoded.
-- Music did not autoplay. MP3 play/pause, progress, forward/backward seeking,
-  volume/mute, and keyboard seeking/volume worked. Audio events drove vinyl
-  and demo lyrics; ending audio stopped vinyl and retained the last reached line.
-- The background video played muted at zero volume without native controls.
-  A real loop occurred while music remained paused. Pausing and seeking music
-  did not pause or seek visuals, and video volume changes were re-muted.
-- Reduced-motion emulation stopped visual motion while MP3 time advanced.
-  When enabled at startup, no MP4 requests were made. Turning it off resumed
-  visual autoplay when allowed.
-- Injected video errors left actual MP3 playback intact. Missing-video and
-  invalid-video responses and blocked-autoplay simulation showed artwork while
-  real audio still played. A missing MP3 left real video advancing independently.
-- Injected MP3 buffering froze vinyl and retained lyrics while video advanced.
-  Injected audio failure paused music without stopping visuals. Emulated document
-  visibility paused/resumed visuals while audio remained playing.
-- Repeated initialization left one listener per media/control event, one audio,
-  and one video. There are no lyric polling timers or cross-media time transfers.
-- Eight viewport checks (1920×1080 through 320×640) retained 16:9 frames,
-  desktop single-screen fit, and no horizontal overflow. Normal playback had
-  no JavaScript console errors; fault-injection contexts had no unhandled exceptions.
-
-Natural network-buffering interruptions, physical device preferences, all browsers,
-and a full screen-reader audit remain untested. Expected missing-file HTTP 404
-logs during fault tests are network failures, not application exceptions.
-
-## Known limitations and unfinished features
-
-- Only Multo is configured. The other 29 tracks and dynamic switching remain future work.
-- Artist information and song-card artwork remain placeholders; the supplied cover serves as the video poster.
-- Search, genre filtering, favorites/localStorage, and artist navigation remain unimplemented.
-- The 17 timed lines are original demo text with sample timestamps, not Multo lyrics.
-- The original demo timings are not accurate to this MP3. Its roughly four-minute
-  duration means entries after 240 seconds are not reached; they were not retimed.
-- MP3 and MP4 deliberately run on separate clocks. A video shot need not match
-  the currently heard passage, and the picture can loop after music ends.
-- Muted visual autoplay and media volume behavior vary by browser and device.
-- Native `timeupdate` frequency can cause a small delay near a timestamp boundary;
-  synchronization follows media events, not a separate high-frequency timer.
-- Codec and buffering behavior can vary by browser and device.
-- Large local videos increase storage and bandwidth needs on a static host.
-- File errors require correcting the source/file and reloading. No retry or song-switching UI is added.
-- There are no accounts, login, subscriptions, payments, backend, or database.
-
-## Documentation conventions
-
-Every HTML, CSS, and JavaScript file begins with its purpose, responsibilities,
-and file connections. The HTML5 doctype stays before the HTML file comment.
-Major HTML and CSS sections receive clear labels. Important JavaScript functions
-use concise JSDoc explaining behavior, parameters, and return values.
-
-Use descriptive names, small functions, and straightforward logic. Comments
-explain non-obvious decisions rather than every line. Keep this README updated
-as each approved milestone changes behavior, assets, or file connections.
+- The publisher's list covers only the first half of 2026. A final annual list
+  cannot be claimed; detailed ranking weights and tracking cutoffs are unavailable.
+- Approve the featured-song selections; they are sourced project choices, not
+  verified song popularity ranks. Select and verify Skusta Clee's third recording.
+- Owners must supply authorized media for the other 28 selected songs, all artist
+  images, and actual licensed lyrics/timings where appropriate. No copyrighted
+  audio, video, photos, or lyric text was downloaded.
+- Only Cup of Joe/Multo is displayed and initialized. Other artists live in data
+  only. Artist/track switching, search, filtering, favorites, and additional
+  playback features remain outside Step 6A.
+- Multo's lines are original demo text with artificial timings; entries beyond
+  the MP3 duration remain unreachable. Native timeupdate can lag a boundary slightly.
+- Autoplay, codecs, buffering, media volume, and motion preferences vary by browser.
+- File failure recovery still requires correcting a file/path and reloading.
+- No Git commit was made. Step 6B requires explicit client approval.

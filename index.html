@@ -46,6 +46,11 @@
       </div>
     </header>
 
+          <div id="artist-browser" class="artist-browser" role="group" aria-label="Browse artists" aria-describedby="catalog-scope">
+            <button id="previous-artist" class="artist-arrow" type="button" aria-label="Previous artist" disabled><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+            <button id="next-artist" class="artist-arrow" type="button" aria-label="Next artist" disabled><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+          </div>
+
     <main id="main-content" class="page-shell" tabindex="-1">
       <!-- Only this audio element supplies music, time, volume, vinyl, and lyrics. -->
       <audio id="music-audio" preload="metadata" hidden></audio>
@@ -53,8 +58,9 @@
         <div>
           <h1 class="eyebrow">a home for filipino music</h1>
           <p class="introduction-note">Stay a little. Find your next favorite.</p>
+
         </div>
-        <p id="prototype-notice" class="prototype-note"><span class="status-dot" aria-hidden="true"></span>Single-track demo · navigation, search &amp; favorites unavailable</p>
+        <p id="prototype-notice" class="prototype-note"><span class="status-dot" aria-hidden="true"></span>Browse artists · search &amp; favorites unavailable</p>
       </div>
 
       <!-- Decorative video: muted and looping, never synchronized with the MP3. -->
@@ -95,7 +101,7 @@
             </div>
           </div>
           <div class="song-summary">
-            <div><h2 id="song-heading" class="serif-heading">Multo</h2><p>Cup of Joe</p></div>
+            <div><h2 id="song-heading" class="serif-heading">Multo</h2><p id="song-artist">Cup of Joe</p></div>
             <button class="icon-button favorite-button" type="button" disabled aria-label="Add Multo to favorites (unavailable in prototype)">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
             </button>
@@ -121,13 +127,18 @@
       </section>
 
       <!-- Artist rank is publisher-verified for H1 2026; songs are editorial selections. -->
-      <section class="artist-section" aria-labelledby="artist-heading">
+      <section class="artist-section" aria-labelledby="artist-heading" aria-describedby="artist-swipe-hint" tabindex="0">
         <div class="artist-information">
           <p class="eyebrow">In the spotlight · 2026 catalog</p>
-          <h2 id="artist-heading" class="serif-heading">Cup of Joe</h2>
+          <p id="artist-swipe-hint" class="artist-swipe-hint small-note">Swipe left or right to browse artists.</p>
+          <div class="artist-identity">
+            <div class="artist-image-frame"><img id="artist-image" alt="Cup of Joe" hidden><span id="artist-image-placeholder" class="small-note">Photo pending</span></div>
+            <h2 id="artist-heading" class="serif-heading" aria-live="polite" aria-atomic="true">Cup of Joe</h2>
+          </div>
           <p class="artist-biography">Cup of Joe is a Filipino pop-alternative band based in Baguio.</p>
           <ul class="genre-labels" aria-label="Artist genres"><li>OPM</li><li>Pop Alternative</li></ul>
           <p id="catalog-source" class="small-note">No. 1 · <a href="https://billboardphilippines.com/music/news/billboard-philippines-top-opm-artists-h1-2026/">Billboard Philippines · First half of 2026</a></p>
+          <p id="catalog-scope" class="visually-hidden">Artist order follows Billboard Philippines' first-half 2026 ranking, not a final annual ranking.</p>
         </div>
         <div class="song-collection">
           <div class="collection-heading"><h3>Featured Songs</h3><span class="small-note">3 selections · not a song ranking</span></div>
@@ -145,6 +156,7 @@
               <div class="song-card-details"><h4>Misteryoso</h4><p>Duration: --:--</p><span class="small-note">Media pending · unavailable</span></div>
             </li>
           </ul>
+          <p id="catalog-feedback" class="small-note" role="status" aria-live="polite"></p>
         </div>
       </section>
     </main>

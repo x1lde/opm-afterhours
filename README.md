@@ -5,13 +5,15 @@ cinematic listening room. It uses HTML5, CSS3, and vanilla JavaScript ES modules
 Run it with VS Code Live Server. No packages, build tools, frameworks, backend,
 accounts, or database are required.
 
-## Current milestone: Step 6A
+## Current milestone: Step 6B
 
-Steps 1-5.5 remain working. Step 6A adds the artist/song data architecture:
-10 artists, 30 track slots, and exactly three slots per artist. Only Multo is
-initialized for playback. There is no artist or track switching, catalog search,
-filtering, favorites, or new playback feature. Stop here until Step 6B is approved.
+Steps 1-6A remain working. Step 6B adds dynamic artist browsing and track
+selection without refresh, routing, or a second audio controller. The catalog
+still contains 10 artists, 30 slots, 29 verified titles, and one pending selection.
+Only Multo has supplied media; other titles remain visible but unavailable.
+Search, filtering, favorites, next/previous, shuffle, and repeat remain out of scope.
 The existing mobile search button only reveals the disabled demo search field.
+Stop after Step 6B until Step 7 receives explicit approval.
 
 The MP3 alone controls play/pause, seeking, duration, progress, volume, vinyl
 rotation, and synchronized lyrics. The muted, zero-volume, looping MP4 remains
@@ -89,14 +91,17 @@ Verification of a title does not mean its recording is locally available.
 | css/responsive.css | Approved desktop/tablet/mobile layouts and reduced-motion rules. |
 | js/data.js | Artists, tracks, sources, lookup helpers, initialTrackId, and demoSong adapter. |
 | js/catalog-validation.js | Pure validation plus nonfatal development warnings. |
-| js/catalog.js | Renders only the initial artist and existing three cards; no selection controls or playback listeners. |
-| js/main.js | Validates, renders the initial catalog, then initializes existing controllers and subscriptions. |
-| js/player.js | The authoritative MP3 controller and playback subscription API. Unchanged in Step 6A. |
-| js/background-video.js | Independent muted autoplay, looping, reduced motion, tab visibility, and fallback. Unchanged in Step 6A. |
-| js/lyrics.js | Timestamp-driven lines, independent scrolling, manual/follow mode. Unchanged in Step 6A. |
+| js/catalog.js | Renders the artist gallery, browsed artist information, and three cards; updates active/availability states in place. |
+| js/main.js | Owns separate artist/track state, delegates selection events, and coordinates committed listening changes. |
+| js/player.js | One MP3 controller with preflight checks, cancellable track loads, preserved volume/mute, and the existing subscription API. |
+| js/background-video.js | Independently switches muted decorative sources and cancels stale loads; preserves reduced motion, visibility, and fallback. |
+| js/lyrics.js | Timestamp-driven lines, track resets, independent scrolling, and manual/follow mode. |
 | js/header.js | Existing desktop auto-hide/pull tab and persistent mobile header behavior. |
 | js/layout.js | Budgets desktop vinyl size using available height and surrounding content. |
-| tests/catalog-tests.js | Browser-only validation tests; never imported by the production entry point. |
+| js/artwork.js | Versioned image loading that hides old/broken artwork and retains placeholders. |
+| tests/catalog-tests.js | Browser-only schema tests; not loaded by production. |
+| tests/switching-tests.js | Real-Multo browser integration tests for browsing and safe selection. |
+| tests/playwright-transitions.js | Playwright-only controlled mock transitions using supplied Multo bytes, never real recordings of other songs. |
 
 ```text
 assets/
@@ -106,7 +111,7 @@ assets/
   artists/             (reserved for owner-supplied images)
 ```
 
-No media was downloaded, fabricated, replaced, or extracted in Step 6A. Other
+No media was downloaded, fabricated, replaced, or extracted in Steps 6A-6B. Other
 paths are predictable reservations, not files that claim to exist. No new asset
 folder is required until its authorized content is provided.
 
@@ -128,6 +133,7 @@ The order of `trackIds` determines card order, not chart position.
 | imageSrc | string or null | Expected local artist image path; not loaded in this milestone. |
 | genres | string array | Broad descriptive tags; empty is allowed. |
 | trackIds | three distinct strings | IDs resolving to exactly three owned tracks. |
+| imageAvailable | optional boolean | Set true only after an authorized artist photo is supplied. |
 | sourceUrls | HTTPS string array | Research attribution for the artist description. |
 
 ### Track schema
@@ -137,7 +143,7 @@ The order of `trackIds` determines card order, not chart position.
 | id | string | Unique track or pending-slot identifier. |
 | artistId | string | An existing artist's ID. |
 | title | string or null | Verified title; null only for pending selection. |
-| status | string | ready-demo, pending-media, or pending-selection. |
+| status | string | ready, ready-demo, pending-media, or pending-selection. |
 | audioSrc | string or null | Local assets/audio/*.mp3 path, or unprovided media. |
 | backgroundVideoSrc | string or null | Local assets/videos/*.mp4 path. |
 | coverArt | string or null | Local assets/covers/ image path. |
@@ -169,7 +175,7 @@ The original `initializePlayer()`, `getPlaybackState()`, and
 4. Put the three track IDs in the artist's trackIds array, in display order.
 5. Use pending-selection and title null for an unchosen slot. Use pending-media
    for a verified recording whose authorized files are not supplied yet.
-6. Run the validation tests. Data additions do not activate navigation or switching.
+6. Run the validation tests. Mark authorized audio ready and reload to make it a checked playback candidate.
 
 Example reserved entry:
 
@@ -186,7 +192,7 @@ createTrack('artist-id-slot-3', 'artist-id', null)
 A pending slot displays as a numbered slot with a selection-pending label, never
 as a released song. Once chosen, verify it, assign its final stable track ID, update
 the matching artist reference, and add the real title and source. Changing status
-alone does not make playback available; Step 6A loads only Multo.
+alone does not prove playback availability; Step 6B checks the MP3 source before switching.
 
 ## Adding authorized media and timestamped lyrics
 
@@ -201,7 +207,8 @@ Keep Multo's existing shorter filenames unchanged. Paths are relative to index.h
 and case-sensitive on many hosts. Use compatible MP3 audio and H.264 MP4 video.
 Supply an authorized jpg, jpeg, png, or webp image. Do not create dummy media files.
 A null path denotes unprovided media. A pending-media path is a reservation and
-is not requested by the catalog UI. Artist images are stored for future use.
+is not requested by the catalog UI. Set imageAvailable: true after supplying the authorized artist image; reservations
+otherwise display Photo pending without making unnecessary missing-file requests.
 
 Edit a track's lyrics array using authorized text and real timestamps in seconds:
 
@@ -240,9 +247,90 @@ separate responsibilities. The test suite asserts the milestone's 10/30 capacity
 The renderer uses textContent and creates DOM elements rather than injecting HTML.
 Missing biographies use a neutral note; absent genres display no tags. Missing
 covers keep labeled placeholders. A failed fallback image leaves the dark backdrop.
-Cards remain plain noninteractive list items with explicit pending-media labels.
-Render the initial cards BEFORE initializePlayer(), because the player retains
-the selected-song-duration node. The renderer is groundwork, not a switching API.
+Cards contain native buttons. Missing audio or pending selections are disabled and
+clearly labeled. Available choices are enabled with visible focus states and an
+aria-pressed active indicator. The player looks up the active card duration node
+afresh, because browsing replaces the card list. Artist rendering never changes media; main.js coordinates track selection.
+
+## Artist browsing and track switching (Step 6B)
+
+Use the left and right page-edge artist arrows to browse the ten artists in the
+verified first-half 2026 order. Previous/next arrows wrap at either end. The artist name appears in the
+information section below; there is no duplicate top label or counter. Native buttons support mouse, touch, Enter,
+and Space; Left/Right arrow keys also move through artists when the gallery has focus. The artist name, biography, photo or placeholder, genres, source
+attribution, and three featured cards update without navigation or refresh.
+
+Two independent IDs live in main.js:
+
+- selectedArtistId identifies the artist currently being browsed.
+- activeTrackId identifies the song committed to the MP3 controller.
+
+On mobile (600px and narrower), the page-edge buttons are hidden and the side
+spacing returns to the normal mobile gutter. Swipe left on a non-control area to
+browse the next artist; swipe right for the previous artist. A small hint appears
+with the artist information. Vertical gestures still scroll the page/lyrics;
+sliders, buttons, links, pinch gestures, and browser-edge gestures are excluded.
+The focusable artist section also supports Left/Right keys for keyboard users.
+Touch navigation requires at least 60px of clearly horizontal movement and never
+changes the active song. Playwright touch-input checks passed left/right browsing,
+vertical-scroll protection, hidden mobile buttons, and continued actual MP3 playback.
+
+Browsing Arthur Nery while listening to Multo changes only catalog information.
+The listening title, vinyl, lyrics, and video stay with Multo. Selecting a
+playable track makes its owner the selected artist and updates the listening
+experience. Selecting the active track does not restart it or toggle playback.
+
+Availability has separate meanings:
+
+- pending-selection: no chosen title; a disabled Selection pending card.
+- pending-media: a verified title with reserved paths; disabled Audio unavailable.
+- ready / ready-demo: the owner has supplied audio. A HEAD check runs when its
+  artist is rendered; Checking audio changes to available or unavailable.
+- A new selection checks again before replacing the existing audio. Missing HTTP
+  files, inaccessible sources, and timed-out checks leave the current song intact.
+- HTTP 405/501 permits a native load attempt on servers that cannot handle HEAD.
+  HEAD success proves availability, not a valid codec. A decoding/playback failure
+  after commit leaves the selected player stopped with a nonintrusive error.
+
+Do not mark reserved paths ready to make them look playable. To add a real song,
+supply its authorized MP3, set status to ready, verify audioSrc, and reload. The
+catalog page will check it. The same source can still fail later if it is removed.
+The availability display is cached during the session; a reload refreshes it after
+owners add or repair files.
+
+Optional video, cover, and lyrics are independent of playable audio. Provide an
+authorized MP4 in backgroundVideoSrc, artwork in coverArt, and timestamped lyrics
+in lyrics. Use null video/cover paths and an empty lyric array when unprovided.
+A ready track requires audio, not an MP4, artwork, or lyrics. An artist photo needs
+imageSrc plus imageAvailable: true. Missing images retain labeled placeholders.
+No audio, video, photo, or copyrighted lyric text is fetched from research sites.
+
+loadTrack(song, { autoplay }) is the player's single loading interface. Startup
+calls it without autoplay. A different playable card requests playback after the
+user action. The controller checks the source, pauses old audio, clears its source,
+resets time/duration/seeking/buffering, publishes the new track, and loads the new
+source on the same element. Volume and mute properties are preserved. Native
+playing confirms success and starts vinyl rotation; loading does not spin it.
+A blocked play promise leaves the player paused with a Press Play message.
+
+Separate request and media versions prevent old preflight checks, loading timers,
+and play promises from overwriting a later selection. Aborted selections settle
+without changing playback. Source/readiness checks reject obsolete native events.
+One set of audio/control listeners survives every load. The player reads card
+nodes dynamically, so browsing cannot leave a stale duration node reference.
+
+On a committed track change, main.js updates song text and vinyl artwork, clears
+and reloads the lyric array, resets follow mode, and changes the decorative video.
+Previous lyrics and frames are hidden immediately. Artwork uses versioned image
+probes so old downloads cannot reveal the wrong cover. The video has its own load
+version, request cancellation, poster/dark fallback, muted looping autoplay,
+reduced-motion handling, and hidden-tab pause/resume. It never observes MP3 time,
+seek position, volume, or paused state. Music continues if video fails.
+
+No scrollIntoView is used on selection. Same-artist cards are updated in place
+through loading so the selected button retains focus. Cards are replaced only
+when browsing another artist. Catalog feedback uses an inline polite status;
+unavailable choices never open alerts or modal dialogs.
 
 ## Running and checking the project
 
@@ -262,7 +350,7 @@ console.table(runCatalogTests().results);
 This test file does not run on ordinary visits and never modifies shipped data;
 malformed cases use cloned arrays. Do not add production controls to run tests.
 
-## Step 6A verification performed
+## Step 6A verification performed (historical)
 
 - Shipped catalog: 10 unique artists, 30 unique track/slot entries, three references
   per artist, all ownership/reference checks resolved; zero validation errors.
@@ -297,6 +385,70 @@ This is a test harness only; no server code or dependency was added to the proje
 Live Server remains the intended workflow. These checks do not claim tests on
 physical phones, every browser, or a full assistive-technology audit.
 
+## Step 6B tests performed
+
+Current automated results:
+
+- 28/28 catalog tests passed, including the two new rules: ready audio can omit
+  video/artwork, and the optional artist-photo flag must be boolean.
+- 42/42 shipped-catalog integration checks passed with actual supplied Multo
+  after the gallery revision (including order and wrapping checks).
+  All ten artists rendered their metadata and three slots without interrupting
+  playing audio. Pending/unavailable choices were safe; active re-selection did
+  not restart; active artist coherence, one audio/video, and no reload passed.
+- 20/20 controlled Playwright mock transition checks passed. Test-only second-song
+  URLs served the actual Multo bytes, not recordings of Tingin, Misteryoso, or
+  Pagsamo. Catalog modifications existed only in the isolated test browser context.
+  No mock files or new production media were added.
+
+The controlled tests covered source/time/duration reset, preserved 31% volume and
+mute, cleared/missing lyrics, missing/restored artwork and video, confirmed vinyl
+rotation, seeking after switching, video independence after audio pause, cross-artist
+selection, retained card focus, rapid overlapping preflight requests, active-track
+re-selection canceling a pending request, HTTP-unavailable ready candidates,
+autoplay refusal and manual retry, unchanged listener counts, one audio element,
+no reload, and no unhandled exceptions.
+
+Additional real-Multo regression checks passed MP3 playback and seek to 60 seconds,
+the expected demo lyric, vinyl activity, video mute, reduced-motion video/vinyl
+pause and resume, desktop header reveal/hide, and persistent mobile navigation.
+The earlier selector keyboard check selected Arthur Nery; the gallery revision
+was separately checked with Left/Right navigation, both wrap directions, all ten
+artists in order, and preserved MP3 playback. Available
+card buttons expose aria-pressed and a visible solid focus outline. The gallery arrows
+have 44px touch targets. Separate missing-MP3, missing-MP4, and missing-cover contexts
+showed safe errors/fallbacks and no unhandled JavaScript exceptions. Missing MP3
+left actual video playing; missing video left audio controls ready.
+
+Eight viewport checks passed without horizontal overflow: 1920x1080, 1440x900,
+1366x768, 1280x720, 1024x640, 768x1024, 390x844, and 320x640. Typical desktop sizes
+fit the page; the short 1024x640 case needs about 78px of vertical scrolling to
+retain usable controls and catalog content. Tablet/mobile use natural vertical
+scrolling. Normal browser console inspection reported zero errors and warnings.
+Expected simulated missing-file HTTP errors in fault contexts are network failures,
+not unhandled application exceptions. No full screen-reader or physical-phone
+audit, all-browser audit, or actual second-song recording test was performed.
+
+To run the actual shipped-catalog integration suite on a fresh Live Server page:
+
+```javascript
+const { runSwitchingTests } = await import('./tests/switching-tests.js');
+console.table((await runSwitchingTests()).results);
+```
+
+It briefly plays supplied Multo, browses artists, and leaves audio paused.
+`tests/playwright-transitions.js` is a function for the Playwright tool's code-file
+runner, not a production import or npm script. It creates an isolated browser
+context, supplies controlled HTTP responses, and closes the context afterwards.
+It assumes the test server runs at http://127.0.0.1:5500. Both test files are
+excluded from production initialization. No testing library is shipped.
+
+As in Step 6A, real seeking was checked with a browser route supplying original
+MP3 bytes with byte-range headers because the temporary Python HTTP server does
+not supply reliable ranges. Live Server remains the intended local workflow.
+Only Multo's audio, video, artwork, and original demo text are real supplied media;
+all other multi-track availability/transition scenarios are explicitly mocked.
+
 ## Known limitations and client decisions
 
 - The publisher's list covers only the first half of 2026. A final annual list
@@ -306,11 +458,11 @@ physical phones, every browser, or a full assistive-technology audit.
 - Owners must supply authorized media for the other 28 selected songs, all artist
   images, and actual licensed lyrics/timings where appropriate. No copyrighted
   audio, video, photos, or lyric text was downloaded.
-- Only Cup of Joe/Multo is displayed and initialized. Other artists live in data
-  only. Artist/track switching, search, filtering, favorites, and additional
-  playback features remain outside Step 6A.
+- All artists can be browsed, but only Multo is currently playable. Other selected
+  titles have no authorized media yet. Search, filtering, favorites, additional
+  playback controls, and playlists remain outside Step 6B.
 - Multo's lines are original demo text with artificial timings; entries beyond
   the MP3 duration remain unreachable. Native timeupdate can lag a boundary slightly.
 - Autoplay, codecs, buffering, media volume, and motion preferences vary by browser.
 - File failure recovery still requires correcting a file/path and reloading.
-- No Git commit was made. Step 6B requires explicit client approval.
+- No Git commit was made. Step 7 requires explicit client approval.

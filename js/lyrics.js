@@ -70,7 +70,8 @@ export function loadLyricsForTrack(songId, lines = []) {
     return element;
   });
   ui.list.replaceChildren(...lineElements);
-  ui.panel.scrollTop = 0;
+  // Stop the old track's smooth movement before resetting the new panel.
+  ui.panel.scrollTo({ top: 0, behavior: 'instant' });
   setFollowing(true);
   if (latestPlayback) updateLyricsFromPlayback(latestPlayback);
   else showLyricsAvailability(lyricData.length > 0);

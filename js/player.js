@@ -1,9 +1,9 @@
 /**
  * FILE: player.js
  * PURPOSE: Uses the MP3 audio element as the sole source of music playback.
- * RESPONSIBILITIES: Loads one local track, reads media events and metadata,
+ * RESPONSIBILITIES: Switches local tracks on one audio element, reads media metadata,
  * connects play/pause, seeking, and volume, explains media failures, and
- * publishes playback snapshots for independent UI components.
+ * preserves volume/mute, cancels stale loads, and publishes playback snapshots.
  * CONNECTED FILES: main.js supplies demoSong from data.js. index.html supplies
  * the audio and controls; main.js uses snapshots for vinyl motion and lyrics.js
  * uses audio time for lyrics. The separate background video never changes
@@ -22,6 +22,11 @@ let finishLoading = null;
 let loadingTimer = null;
 let bufferingTimer = null;
 let previewingSeek = false;
+let loadVersion = 0;
+let requestVersion = 0;
+let blockedPlaybackMessage = null;
+let sourceRequest = null;
+let expectedSource = null;
 let message = 'Loading local audio…';
 const playbackSubscribers = new Set();
 
@@ -81,16 +86,16 @@ function notifyPlaybackSubscribers() {
  * @returns {Promise<object>} State after metadata loads or an error is reported.
  */
 export function initializePlayer(song) {
-  if (!initializationPromise) initializationPromise = loadLocalAudio(song);
+  if (!initializationPromise) {
+    connectPlayer();
+    initializationPromise = loadTrack(song);
+  }
   return initializationPromise;
 }
 
-/**
- * Connects the DOM and checks the configured file before assigning the source.
- * @param {object} song Track data from data.js; duration is not part of the data.
- * @returns {Promise<object>} Initial playback snapshot, including any failure.
- */
-async function loadLocalAudio(song) {
+/** Connects the existing audio and controls only once, across every track load. */
+function connectPlayer() {
+  if (audio) return;
   audio = document.getElementById('music-audio');
   ui = {
     playButton: document.getElementById('play-pause'),
@@ -99,56 +104,122 @@ async function loadLocalAudio(song) {
     volume: document.getElementById('volume'),
     currentTime: document.getElementById('current-time'),
     duration: document.getElementById('total-duration'),
-    songDuration: document.getElementById('selected-song-duration'),
     status: document.getElementById('player-status'),
   };
-  playbackState.trackId = song.id;
-  playbackState.selectedSong = { ...song };
-  playbackState.status = 'loading';
   bindAudioEvents();
   bindControls();
   audio.volume = playbackState.volume / 100;
-  renderControls();
+}
 
-  // HEAD checks availability without downloading the MP3 twice. A missing file
-  // gets a precise path message instead of the browser's ambiguous codec error.
-  const requestController = new AbortController();
-  const requestTimeout = setTimeout(() => requestController.abort(), LOAD_TIMEOUT_MS);
+/**
+ * Checks HTTP availability without changing the current audio. Catalog status alone
+ * never proves that a source exists; 405/501 permit a later native decode attempt.
+ * @param {object} song Catalog track with supplied-media status.
+ * @param {AbortSignal} signal Optional cancellation signal.
+ * @returns {Promise<boolean>} Whether a native load may be attempted.
+ */
+export async function checkTrackAvailability(song, signal) {
+  if (!song || !['ready-demo', 'ready'].includes(song.status) || !song.audioSrc) return false;
+  const request = new AbortController();
+  const abort = () => request.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  if (signal?.aborted) request.abort();
+  const timeout = setTimeout(abort, LOAD_TIMEOUT_MS);
   try {
-    if (!song.id || !song.audioSrc) throw new Error('Configure the track ID and audioSrc in js/data.js.');
-    const response = await fetch(song.audioSrc, { method: 'HEAD', signal: requestController.signal });
-    if (response.status === 404) {
-      throw new Error(`Audio file missing. Add an authorized MP3 at ${song.audioSrc}, then reload.`);
-    }
-    // Some static servers do not support HEAD; allow the audio to try loading.
-    if (!response.ok && ![405, 501].includes(response.status)) {
-      throw new Error('The audio file could not be opened. Check its permissions and restart Live Server.');
-    }
-  } catch (error) {
-    showError(error.name === 'AbortError'
-      ? 'Loading timed out. Check that Live Server is running and the audio file is accessible, then reload.'
-      : error.message || 'The local audio could not load. Check Live Server and reload.');
-    return getPlaybackState();
+    const response = await fetch(song.audioSrc, { method: 'HEAD', signal: request.signal });
+    return response.ok || [405, 501].includes(response.status);
+  } catch {
+    return false;
   } finally {
-    clearTimeout(requestTimeout);
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', abort);
+  }
+}
+
+/**
+ * Reuses the sole audio element. Preflight failure leaves the current song intact.
+ * A monotonically increasing version rejects old requests, timers, and play errors.
+ * @param {object} song Catalog track with the compatibility artist display name.
+ * @param {{autoplay?: boolean}} options User track selections request autoplay.
+ * @returns {Promise<object>} Latest playback state; compare trackId to detect commit.
+ */
+export async function loadTrack(song, { autoplay = false } = {}) {
+  connectPlayer();
+  const requested = ++requestVersion;
+  sourceRequest?.abort();
+  sourceRequest = new AbortController();
+  if (song?.id === playbackState.trackId && playbackState.ready) return getPlaybackState();
+  const available = await checkTrackAvailability(song, sourceRequest.signal);
+  if (requested !== requestVersion) return getPlaybackState();
+  if (!available) {
+    if (!playbackState.trackId) {
+      playbackState.selectedSong = song;
+      showError('Audio unavailable. Supply the authorized MP3 and check its catalog status.');
+    }
+    return getPlaybackState();
   }
 
-  return new Promise((resolve) => {
+  const version = ++loadVersion;
+  blockedPlaybackMessage = null;
+
+  // Finish an abandoned load before resetting. No old timer can change this load.
+  finishLoading?.();
+  clearTimeout(loadingTimer);
+  clearBufferTimeout();
+  expectedSource = null;
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+  Object.assign(playbackState, {
+    trackId: song.id, selectedSong: { ...song }, status: 'loading', ready: false,
+    currentTime: 0, duration: 0, seeking: false, buffering: false,
+    isActivelyPlaying: false, error: null,
+  });
+  previewingSeek = false;
+  message = `Loading ${song.title}...`;
+  renderControls();
+  expectedSource = new URL(song.audioSrc, document.baseURI).href;
+  audio.src = song.audioSrc;
+  const loaded = new Promise(resolve => {
     finishLoading = () => {
       clearTimeout(loadingTimer);
       finishLoading = null;
       resolve(getPlaybackState());
     };
     loadingTimer = setTimeout(() => {
-      showError('Audio metadata did not load. Check the MP3 format and file, then reload.');
+      if (version === loadVersion) showError('Audio metadata did not load. Check the recording and try again.');
     }, LOAD_TIMEOUT_MS);
-    try {
-      audio.src = song.audioSrc;
-      audio.load();
-    } catch {
-      showError('The audio could not initialize. Check its path and reload the page.');
-    }
   });
+  audio.load();
+  if (autoplay) {
+    // Calling play during loading retains the user-initiated intent. Native playing
+    // confirms success; a browser refusal leaves controls available to retry.
+    playAudio(version);
+  }
+  await loaded;
+  return getPlaybackState();
+}
+
+/** Handles play rejections only for the currently requested track. */
+async function playAudio(version = loadVersion) {
+  try {
+    await audio.play();
+  } catch (error) {
+    if (version !== loadVersion || error.name === 'AbortError') return;
+    if (error.name === 'NotAllowedError') {
+      audio.pause();
+      blockedPlaybackMessage = 'Playback blocked. Press Play to listen.';
+      showError(blockedPlaybackMessage, false);
+    } else {
+      showError('Audio playback failed. Check the recording or choose another available track.');
+    }
+  }
+}
+
+/** Cancels a not-yet-committed selection without interrupting active media loading. */
+export function cancelPendingTrackSelection() {
+  requestVersion++;
+  sourceRequest?.abort();
 }
 
 /** Attaches each media listener once; there are no polling loops or new players. */
@@ -165,6 +236,11 @@ function bindAudioEvents() {
  * @param {Event} event A media event from the single HTMLAudioElement.
  */
 function handleAudioEvent(event) {
+  // Events queued by a removed source must not publish old metadata or timestamps.
+  if (!expectedSource || (audio.currentSrc && audio.currentSrc !== expectedSource)) return;
+  if (event.type === 'loadedmetadata' && (audio.readyState < 1 || !Number.isFinite(audio.duration))) return;
+  if (event.type === 'error' && !audio.error) return;
+  if (!playbackState.ready && !['loadedmetadata', 'playing', 'error', 'volumechange'].includes(event.type)) return;
   if (event.type === 'error') {
     const errors = {
       1: 'Audio loading was interrupted. Reload the page to try again.',
@@ -182,9 +258,9 @@ function handleAudioEvent(event) {
     case 'loadedmetadata':
       playbackState.isActivelyPlaying = false;
       playbackState.ready = true;
-      playbackState.error = null;
-      playbackState.status = 'paused';
-      message = 'Ready · press Play to listen';
+      playbackState.error = blockedPlaybackMessage;
+      playbackState.status = audio.paused ? 'paused' : 'starting';
+      message = blockedPlaybackMessage || (audio.paused ? 'Ready - press Play to listen' : 'Starting playback...');
       finishLoading?.();
       break;
     case 'play':
@@ -196,6 +272,7 @@ function handleAudioEvent(event) {
       beginBufferTimeout();
       break;
     case 'playing':
+      blockedPlaybackMessage = null;
       playbackState.isActivelyPlaying = true;
       playbackState.ready = true;
       playbackState.status = 'playing';
@@ -292,18 +369,7 @@ async function togglePlayback() {
     audio.pause();
     return;
   }
-  try {
-    await audio.play();
-  } catch (error) {
-    if (error.name === 'AbortError' && audio.paused) return;
-    if (error.name === 'NotAllowedError') {
-      showError('Your browser blocked playback. Press Play to try again, and check browser playback permissions.', false);
-    } else if (error.name === 'NotSupportedError') {
-      showError('This media format is unsupported. Use a compatible MP3 audio file.');
-    } else {
-      showError('Playback failed. Try Play again or reload the page.', false);
-    }
-  }
+  await playAudio();
 }
 
 /** Applies the slider position in seconds; unknown duration keeps seeking disabled. */
@@ -334,11 +400,13 @@ function renderControls() {
   ui.playButton.disabled = !playbackState.ready;
   ui.volume.disabled = !playbackState.ready;
   ui.progress.disabled = !playbackState.ready || playbackState.duration <= 0;
-  ui.playButton.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} ${playbackState.selectedSong.title}`);
+  ui.playButton.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} ${playbackState.selectedSong?.title || 'track'}`);
   ui.playIcon.setAttribute('d', playing ? PAUSE_ICON : PLAY_ICON);
   ui.currentTime.textContent = playbackState.ready ? formatTime(playbackState.currentTime) : '--:--';
   ui.duration.textContent = playbackState.duration > 0 ? formatTime(playbackState.duration) : '--:--';
-  ui.songDuration.textContent = ui.duration.textContent;
+  // Artist browsing replaces cards, so never retain a reference to an old card.
+  const songDuration = document.getElementById('selected-song-duration');
+  if (songDuration) songDuration.textContent = ui.duration.textContent;
   ui.currentTime.setAttribute('aria-label', `Current time ${ui.currentTime.textContent}`);
   ui.duration.setAttribute('aria-label', `Total duration ${ui.duration.textContent}`);
   if (!previewingSeek) {

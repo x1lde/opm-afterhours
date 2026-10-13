@@ -63,6 +63,7 @@ export function validateCatalog(artistEntries = artists, trackEntries = tracks) 
     if (artist.biography != null && typeof artist.biography !== 'string') errors.push(`${label}: biography must be text or null.`);
     if (artist.rank != null && (!Number.isInteger(artist.rank) || artist.rank < 1)) errors.push(`${label}: rank must be a positive integer or null.`);
     checkPath(artist.imageSrc, label, 'artists', /\.(jpg|jpeg|png|webp)$/i);
+    if (artist.imageAvailable !== undefined && typeof artist.imageAvailable !== 'boolean') errors.push(`${label}: imageAvailable must be a boolean.`);
     checkGenres(artist.genres, label);
     checkSources(artist.sourceUrls, label);
     if (!Array.isArray(artist.trackIds) || artist.trackIds.length !== 3 || !artist.trackIds.every(isText)) {
@@ -80,7 +81,7 @@ export function validateCatalog(artistEntries = artists, trackEntries = tracks) 
     const label = `Track ${track.id || index}`;
     checkId(track, trackIds, label);
     if (!artistIds.has(track.artistId)) errors.push(`${label}: unknown artist ${track.artistId}.`);
-    if (!['ready-demo', 'pending-media', 'pending-selection'].includes(track.status)) errors.push(`${label}: unknown status.`);
+    if (!['ready', 'ready-demo', 'pending-media', 'pending-selection'].includes(track.status)) errors.push(`${label}: unknown status.`);
     if (track.status === 'pending-selection') {
       if (track.title !== null) errors.push(`${label}: pending selection must have a null title.`);
       if (!Array.isArray(track.lyrics) || track.lyrics.length !== 0) errors.push(`${label}: pending selection must have empty lyrics.`);
@@ -88,7 +89,7 @@ export function validateCatalog(artistEntries = artists, trackEntries = tracks) 
     checkPath(track.audioSrc, label, 'audio', /\.mp3$/i);
     checkPath(track.backgroundVideoSrc, label, 'videos', /\.mp4$/i);
     checkPath(track.coverArt, label, 'covers', /\.(jpg|jpeg|png|webp)$/i);
-    if (track.status === 'ready-demo' && ![track.audioSrc, track.backgroundVideoSrc, track.coverArt].every(isText)) errors.push(`${label}: ready demo needs media paths.`);
+    if (['ready', 'ready-demo'].includes(track.status) && !isText(track.audioSrc)) errors.push(`${label}: ready track needs an audio path.`);
     checkGenres(track.genres, label);
     checkSources(track.sourceUrls, label);
     if (track.status !== 'pending-selection' && Array.isArray(track.sourceUrls) && track.sourceUrls.length === 0) errors.push(`${label}: selected song needs a verification source.`);

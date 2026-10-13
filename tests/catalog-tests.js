@@ -48,7 +48,7 @@ export function runCatalogTests() {
   rejects('Unsafe or wrong media location', (a, t) => t[1].audioSrc = 'assets/audio/../outside.mp3', 'local assets/audio/');
   rejects('Unmarked placeholder', (a, t) => t.find(track => track.status === 'pending-selection').status = 'pending-media', 'needs a title');
   rejects('Placeholder posing as a song', (a, t) => t.find(track => track.status === 'pending-selection').title = 'Invented title', 'null title');
-  rejects('Unknown status', (a, t) => t[1].status = 'ready', 'unknown status');
+  rejects('Unknown status', (a, t) => t[1].status = 'mystery', 'unknown status');
   rejects('Missing source', (a, t) => t[1].sourceUrls = [], 'verification source');
   const minimalArtists = structuredClone(artists);
   const minimalTracks = structuredClone(tracks);
@@ -62,6 +62,12 @@ export function runCatalogTests() {
   check('Absent optional metadata/media allowed', validateCatalog(minimalArtists, minimalTracks).valid);
   check('Malformed arrays do not throw', !validateCatalog(null, null).valid);
   check('Malformed records do not throw', !validateCatalog([null], [null, []]).valid);
+  const readyTracks = structuredClone(tracks);
+  readyTracks[1].status = 'ready';
+  readyTracks[1].backgroundVideoSrc = null;
+  readyTracks[1].coverArt = null;
+  check('Ready audio does not require video or artwork', validateCatalog(artists, readyTracks).valid);
+  rejects('Invalid artist photo flag', (a) => a[0].imageAvailable = 'yes', 'imageAvailable must be a boolean');
   return {
     passed: results.filter(result => result.passed).length,
     failed: results.filter(result => !result.passed).length,

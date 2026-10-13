@@ -20,7 +20,7 @@
   .song-cards {
     gap: 0.65rem;
   }
-  .song-card {
+  .song-card-button {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -105,7 +105,7 @@
   .collection-heading {
     margin-bottom: 0.75rem;
   }
-  .song-card {
+  .song-card-button {
     flex-direction: row;
     gap: 0.5rem;
     padding: 0.65rem;
@@ -149,7 +149,7 @@
   .artist-biography {
     max-width: 65ch;
   }
-  .song-card {
+  .song-card-button {
     flex-direction: row;
   }
 }
@@ -158,6 +158,16 @@
 @media (max-width: 600px) {
   :root {
     --page-gutter: 1.25rem;
+  }
+  .artist-browser {
+    display: none;
+  }
+  .page-shell {
+    touch-action: pan-y pinch-zoom;
+  }
+  .artist-swipe-hint {
+    display: block;
+    margin-top: 0.4rem;
   }
   .header-inner {
     gap: 0;
@@ -283,7 +293,7 @@
   .song-cards {
     grid-template-columns: minmax(0, 1fr);
   }
-  .song-card {
+  .song-card-button {
     padding: var(--space-sm);
     gap: var(--space-sm);
   }

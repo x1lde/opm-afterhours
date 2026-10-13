@@ -11,6 +11,7 @@ const HIDE_DELAY_MS = 2000;
 /** Initializes responsive navigation without changing music state. */
 export function initializeHeader() {
   const header = document.getElementById('site-header');
+  const pullTab = document.getElementById('header-pull-tab');
   const searchToggle = document.getElementById('mobile-search-toggle');
   const searchField = document.getElementById('header-search');
   const desktop = window.matchMedia('(min-width: 601px) and (hover: hover) and (pointer: fine)');
@@ -34,17 +35,23 @@ export function initializeHeader() {
 
   function showHeader() {
     clearTimeout(timer);
+    const tabHadFocus = document.activeElement === pullTab;
     header.classList.remove('is-hidden');
     header.inert = false;
+    pullTab.hidden = true;
+    pullTab.setAttribute('aria-expanded', 'true');
+    if (tabHadFocus) header.focus({ preventScroll: true });
     scheduleHide();
   }
 
   function scheduleHide() {
     clearTimeout(timer);
-    if (!desktop.matches || hovered || nearTop || header.contains(document.activeElement)) return;
+    if (!desktop.matches || hovered || nearTop || header.contains(document.activeElement) || document.activeElement === pullTab) return;
     timer = setTimeout(() => {
       header.classList.add('is-hidden');
       header.inert = true;
+      pullTab.hidden = false;
+      pullTab.setAttribute('aria-expanded', 'false');
     }, HIDE_DELAY_MS);
   }
 
@@ -72,6 +79,11 @@ export function initializeHeader() {
   });
   header.addEventListener('focusin', showHeader);
   header.addEventListener('focusout', () => queueMicrotask(scheduleHide));
+  pullTab.addEventListener('pointerenter', showHeader);
+  pullTab.addEventListener('pointerleave', scheduleHide);
+  pullTab.addEventListener('click', showHeader);
+  pullTab.addEventListener('focus', showHeader);
+  pullTab.addEventListener('blur', scheduleHide);
   // Reveal navigation when keyboard users enter through the skip link.
   document.querySelector('.skip-link').addEventListener('focus', showHeader);
   desktop.addEventListener('change', updateLayout);

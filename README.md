@@ -116,10 +116,11 @@ The page can scroll on tablets, phones, unusually short windows, or when text
 is enlarged. No content is hidden to force the interface into one screen.
 
 On desktop with a mouse, the header floats above the page and hides after
-3.5 seconds of inactivity. Moving to the top edge reveals it; hovering or keyboard
+2 seconds of inactivity. A small pull tab marks the hidden navigation at the top
+edge; hovering, clicking, or focusing it reveals the header. Hovering or keyboard
 focus keeps it visible. Mobile and touch layouts keep a persistent sticky header. A compact mobile search
 button reveals the existing search field; catalog search remains unavailable in this demo.
-Reduced motion disables its transition.
+Reduced motion disables its transition. The footer has been removed.
 Desktop vinyl size adapts to screen height so typical laptop layouts fit one screen;
 mobile and enlarged text can still scroll naturally.
 

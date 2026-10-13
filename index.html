@@ -18,9 +18,12 @@
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to listening experience</a>
+    <button id="header-pull-tab" class="header-pull-tab" type="button" aria-label="Reveal navigation" aria-controls="site-header" aria-expanded="true" hidden>
+      <span aria-hidden="true"></span>
+    </button>
 
     <!-- Navigation: links and search are reserved for later milestones. -->
-    <header id="site-header" class="site-header">
+    <header id="site-header" class="site-header" tabindex="-1">
       <div class="header-inner">
         <div class="brand" aria-label="OPM Afterhours">
           <span class="brand-prefix">OPM</span>
@@ -146,7 +149,5 @@
       </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="site-footer"><span>OPM Afterhours</span><p>A school project, made for the love of Filipino music.</p><span class="small-note">Independent audio &amp; visuals · Step 5.5</span></footer>
   </body>
 </html>

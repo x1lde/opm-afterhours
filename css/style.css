@@ -155,6 +155,32 @@ svg {
   visibility: hidden;
   pointer-events: none;
 }
+.header-pull-tab {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  width: 64px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: #0e0d0f;
+  cursor: pointer;
+}
+.header-pull-tab span {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+.header-pull-tab[hidden] {
+  display: none;
+}
 .header-inner {
   max-width: var(--page-width);
   margin: auto;
@@ -271,7 +297,7 @@ svg {
 .listening-layout {
   position: relative;
   isolation: isolate;
-  background: #141215;
+  background: #111012;
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 3rem);
@@ -299,7 +325,7 @@ svg {
 .listening-background {
   z-index: -2;
   overflow: hidden;
-  background: #141215;
+  background: #111012;
 }
 .listening-background video, .listening-background .video-fallback {
   position: absolute;
@@ -317,14 +343,14 @@ svg {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to left, #111012 0%, #111012 44%, #11101266 66%, transparent 85%);
+  background: linear-gradient(to right, transparent 30%, #111012 50%, #111012 100%);
 }
 .listening-background [hidden] {
   display: none;
 }
 .listening-overlay {
   z-index: -1;
-  background: linear-gradient(90deg, #0d0c0f 0%, #181419 65%, #0d0c0f 100%);
+  background: #0d0c0f;
   opacity: var(--listening-overlay-opacity);
 }
 .play-button:not(:disabled), .range-input:not(:disabled) {
@@ -734,21 +760,4 @@ svg {
 }
 .song-card .small-note {
   font-size: 0.6rem;
-}
-
-/* Footer */
-.site-footer {
-  max-width: var(--page-width);
-  margin: 0 auto;
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-md) var(--page-gutter);
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  color: var(--color-text-secondary);
-  font-size: 0.65rem;
-}
-.site-footer > span:first-child {
-  font-family: var(--font-serif);
-  font-size: 0.85rem;
 }

@@ -26,7 +26,7 @@
   }
 }
 
-/* Desktop height: reserve room for controls, artist row, and footer.
+/* Desktop height: reserve room for controls and the artist row.
    Content can still scroll on unusually short screens or with enlarged text;
    nothing is clipped or hidden to force a one-screen layout. */
 @media (min-width: 1001px) {
@@ -46,7 +46,7 @@
   }
   .vinyl-stage {
     /* Larger on tall desktops, capped by the actual column and screen height. */
-    width: min(100%, clamp(170px, calc(100svh - 525px), var(--vinyl-max-size)));
+    width: min(100%, var(--vinyl-available-size, clamp(170px, calc(100svh - 525px), var(--vinyl-max-size))), var(--vinyl-max-size));
     margin-inline: auto;
   }
   .song-summary {
@@ -112,10 +112,6 @@
   }
   .cover-placeholder {
     width: 48px;
-  }
-  .site-footer {
-    padding-top: 0.65rem;
-    padding-bottom: 0.65rem;
   }
 }
 
@@ -240,7 +236,7 @@
   }
   /* Fade the bottom of the lyrics picture into the solid record backdrop. */
   .listening-background::after {
-    background: linear-gradient(to top, #141215 0%, transparent 35%);
+    background: linear-gradient(to top, #111012 0%, transparent 35%);
   }
   .listening-overlay {
     background: #0d0c0f;
@@ -296,10 +292,6 @@
   }
   .song-card h4 {
     font-size: 0.95rem;
-  }
-  .site-footer {
-    flex-direction: column;
-    gap: 0.3rem;
   }
 }
 
